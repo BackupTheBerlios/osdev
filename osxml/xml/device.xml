@@ -1,17 +1,17 @@
 <?xml version='1.0'?>
 <!DOCTYPE guide SYSTEM "../dtd/guide.dtd">
-<!-- $Id: device.xml,v 1.1 2002/07/02 07:43:38 zhware Exp $ -->
+<!-- $Id: device.xml,v 1.2 2002/08/26 14:02:46 pavlovskii Exp $ -->
 
 <guide link="device">
 <title>Device Management</title>
 <author>
-<email link="timothy.robinson@ic.ac.uk">Tim Robinson</email>
+<email link="tim@themoebius.org.uk">Tim Robinson</email>
 <title>author</title>
 <homepage>http://www.themoebius.org.uk/</homepage>
 </author>
-<date>$Date: 2002/07/02 07:43:38 $</date>
-<version>$Revision: 1.1 $</version>
-<copyright>Created 27/12/01; last updated $Date: 2002/07/02 07:43:38 $</copyright>
+<date>$Date: 2002/08/26 14:02:46 $</date>
+<version>$Revision: 1.2 $</version>
+<copyright>Created 27/12/01; last updated $Date: 2002/08/26 14:02:46 $</copyright>
 
 <keywordset>
    <keyword>osdev</keyword>
