@@ -1,0 +1,296 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd">
+
+<guide link="netboot">
+<title>Network-booting Your Operating System</title>
+
+<author>
+	<email link="chris@cfallin.org">Chris Fallin</email>
+	<title>author</title>
+	<homepage>http://www.cfallin.org/</homepage>
+</author>
+
+<date>$Date: 2002/07/30 01:13:53 $</date>
+<version>$Revision: 1.1 $</version>
+<copyright>Created 2002/7/28; Last updated: $Date: 2002/07/30 01:13:53 $</copyright>
+
+<keywordset>
+	<keyword>osdev</keyword>
+	<keyword>network</keyword>
+	<keyword>booting</keyword>
+	<keyword>netboot</keyword>
+	<keyword>GRUB</keyword>
+	<keyword>diskless</keyword>
+</keywordset>
+
+<abstract>
+Sometimes it's very convenient to be able to boot your OS over a network,
+without ever having to transfer any disks between the development and test PCs.
+</abstract>
+
+<chapter id="intro">
+<title>Introduction</title>
+<section>
+<body>
+
+<p>Most of the time, hobby OSes are loaded from a floppy. In fact, most hobby 
+OSes start with a floppy boot sector. Floppies have the advantage that they
+will work with nearly any PC. However, it can be quite time-consuming writing a
+new version of your OS to a floppy, moving it to the test PC, and waiting for
+it to load every time you change something. There is a better way, though -
+you can set your test machine up to automatically load the newest version of
+your OS every time it boots, making it much easier to test new changes.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="overview">
+<title>Overview</title>
+<section>
+<body>
+
+<p>Network booting (sometimes known as diskless booting) really isn't too hard
+to set up, and once it is set up there is practically no maintenance involved.
+</p>
+
+<p>You will need two PCs to network-boot - a server (your development machine)
+and a client (your test machine). Linux, FreeBSD and Win2k Server have all been
+successfully used by the author on the server. The client may be any PC with
+an Etherboot- and GRUB-compatible network card.</p>
+
+<p>Two protocols are used to boot a machine off the network. The first, DHCP,
+is a protocol to allow hosts to automatically configure their network
+parameters from a server, and is commonly used on networks to make IP address
+allocation and network administration easier. The second, TFTP, is a stripped
+down FTP protocol, commonly used in bootloaders where a full FTP client would
+be too large. The server machine must run servers for both of these protocols.
+</p>
+
+<p>The client machine will use two software packages before it gets to your OS.
+The first of these is Etherboot, a network bootloader capable of running from a
+floppy as well as a boot ROM on a network card. Etherboot, when run, uses DHCP
+to get an IP address, a TFTP server address and a boot image filename. It then
+downloads the boot image and transfers control.</p>
+
+<p>This boot image, in our case, will be GRUB. When compiled with the right
+options, a network boot image (NBI image) is produced suitable for Etherboot.
+GRUB then loads its menu.lst file according to a special option in the DHCP
+reply packet. The menu.lst file specifies your kernel and modules, which will
+be downloaded using TFTP when you boot your OS.</p>
+
+<p>Note that because GRUB is used to boot your OS, any Multiboot-compatible
+OS should work. If you can use GRUB to boot your OS off a floppy, you can boot
+it off a network. No modifications are needed to your OS. It just works.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="etherboot">
+<title>Installing Etherboot</title>
+<section>
+<body>
+
+<p>Etherboot, as mentioned earlier, is the piece of software that loads off of
+a floppy or boot EPROM and loads the GRUB, the second-stage loader, off the
+server. It is a freely-available, open source package.</p>
+
+<p>Etherboot may be obtained at <uri link="http://etherboot.sourceforge.net/">
+etherboot.sourceforge.net</uri>. Be sure to grab the latest version.</p>
+
+<p>You will need a GNU compiler environment to compile Etherboot. Linux works,
+as does FreeBSD. Cygwin would probably work too. Unpack the tarball:</p>
+
+<pre>
+$ tar zxvf etherboot-x.y.z.tar.gz
+$ cd etherboot-x.y.z/src
+</pre>
+
+<p>Now compile a floppy image:</p>
+
+<pre>
+$ make bin32/&lt;NIC name&gt;.fd0
+</pre>
+
+<p>Where &lt;NIC name&gt; is the name of your NIC's driver - for example, 3c90x
+(3Com 3c90x) or tulip (DEC Tulip chipset). This will write a bootable image to
+/dev/fd0. If your floppy drive isn't /dev/fd0, then:</p>
+
+<pre>
+$ cat bin/boot1a.bin bin32/3c90x.rom > floppy.img
+</pre>
+
+<p>This will create floppy.img, a floppy image.</p>
+
+<p>Once you have a bootable floppy, test-boot it. You should receive a prompt
+asking whether to boot from (L)ocal or (N)etwork. Choose network. As you
+haven't set up a DHCP server yet, it should hang - but at least Etherboot
+works.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="grub">
+<title>Setting up GRUB</title>
+<section>
+<body>
+
+<p>To make things easier, you will use a special "diskless" GRUB image to boot
+your OS. It would be possible to create a netboot image directly, but it's not
+as convenient - just one more image format to support. Diskless GRUB supports
+Multiboot just as well as normal disk-loaded GRUB.</p>
+
+<p>Compiling GRUB with diskless support isn't too hard. First, you need the
+source: <uri link="http://www.gnu.org/software/grub/">GRUB's homepage</uri>.
+Now unpack it:</p>
+
+<pre>
+$ tar zxvf grub-x.yz.tar.gz
+# cd grub-x.yz
+</pre>
+
+<p>Like Etherboot, this requires a GNU i386 toolchain. Cygwin should work.
+It goes like this:</p>
+
+<pre>
+$ ./configure --enable-diskless --enable-&lt;NIC name&gt;
+$ make
+</pre>
+
+<p>&lt;NIC name&gt; is the name of your client's NIC - see the output of
+"./configure --help" for a full list of options, including NIC names.</p>
+
+<p>Once GRUB is compiled, you will have a 'stage2/nbgrub' file. Keep this -
+you'll need it later.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="dhcp">
+<title>The DHCP Server</title>
+<section>
+<body>
+
+<p>The DHCP server is what allocates an address to your netboot client and
+gives it the parameters it needs to load teh rest of the software. Because
+you need to pass DHCP options to the client, not any DHCP server will work.
+ISC DHCP (packaged with Linux and FreeBSD) and Win2K Server's DHCP have both
+been used successfully. For other Win32's, I have been pointed to
+<uri link="http://www.weird-solutions.com">Weird Solutions' software</uri>.
+This has not been tested by the author; but if it can pass options, it should
+work.</p>
+
+<p>To successfully netboot a client, you need to pass three DHCP options. The
+first, boot server, specifies the IP or hostname of the TFTP server. The 
+second, boot filename, is the TFTP filename path to the 'nbgrub' file you saved
+earlier. The last, option-150, is not specified in any DHCP RFC but is used
+by GRUB to specify the TFTP path to menu.lst (GRUB's menu/configuration file).
+</p>
+
+<p>Under Linux, <uri link="http://www.isc.org">ISC</uri> DHCP is standard. It
+uses a text file configuration format, which is fairly simple to write. I'll
+let you dive right in to my /etc/dhcpd.conf:</p>
+
+<pre>
+# cfallin.org internal dhcp
+
+option domain-name "int.cfallin.org";
+option domain-name-servers 10.0.0.1;
+
+subnet 12.0.0.0 netmask 255.0.0.0 {
+	# attbi cable modem - ignore
+}
+
+subnet 10.0.0.0 netmask 255.255.255.0 {
+	range 10.0.0.128 10.0.0.192;
+	option routers 10.0.0.1;
+	option broadcast-address 10.0.0.255;
+
+	# GRUB network boot stuff
+	filename "/tftpboot/nbgrub";
+	server-name "10.0.0.1";
+	option option-150 "(nd)/tftpboot/menu.lst";
+}
+</pre>
+
+<p>It's pretty easy, really. Note that you have to have a subnet declaration
+for each network your server is on - in this case, my server is on my cable
+modem and my internal network. To ignore a subnet (I wouldn't want to serve
+DHCP on ATTBI's cable modem network - that would conflict with their servers),
+just leave the declaration empty. The "range" keyword gives a range of IPs from
+which to allocate. The rest is self explanatory.</p>
+
+<p>Under Win2K server, setup is slightly more tedious, due to the GUI, but not
+any harder. Note that I currently don't have a Win2K server set up, so this is
+from memory - if it doesn't work, play around with it. First, create a DHCP
+scope, and set it up with your parameters (IP range, etc.) Do this from Start >
+Programs > Administrative Tools > DHCP. Then go to Scope Options, and add the
+boot filename and server. Then you'll need to customize the available DHCP
+options (I think you right-click on the scope); add option 150, of type
+"string", and call it something like "GRUB menu.lst". Now add this option to
+the Scope Options, setting it to whatever the TFTP server filename for menu.lst
+is. That should be it.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="tftp">
+<title>The TFTP Server</title>
+<section>
+<body>
+
+<p>The TFTP server is the last software package you need to make the entire
+setup work. It is what serves both GRUB and your OS to the client. Most Linux
+distributions come with a TFTP daemon. There are also a few freewware TFTP
+servers for Win32; I have not used any myself, but they should work.</p>
+
+<p>If the TFTP daemon isn't installed already on your Linux box, look on the
+install CD for a tftpd package; on Debian, try "apt-get install tftpd". you
+might need to uncomment a line in /etc/inetd.conf too. Make sure the command
+line that inetd is passing to tftpd specifies /tftpboot as a root. Create this
+directory on your filesystem.</p>
+
+<p>Now put the 'nbgrub' file, GRUB's menu.lst, and your kernel in /tftpboot.
+Make sure that the paths you specified in your DHCP server above start with
+"/tftpboot"; even though this is the server's root, you still need to specify
+it. In menu.lst, the syntax for the TFTP driver is "(nd)/tftpboot/file". Here's
+a sample menu.lst:</p>
+
+<pre>
+title yourOS
+kernel=(nd)/tftpboot/yourOS/kernel
+module=(nd)/tftpboot/yourOS/driver1
+</pre>
+
+<p>You'll want to set up your Makefile(s) to automatically copy your OS
+binaries to the TFTP server's root every time you compile new ones. This will
+make the required work minimal to test a new version of your code.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="test">
+<title>Test It</title>
+<section>
+<body>
+
+<p>With all this software set up, you should be ready to network-boot your
+system. Make sure your DHCP and TFTP servers are running, then boot your client
+off the Etherboot floppy. If it loads correctly, you should see a prompt asking
+you whether or not to boot from the network; hit 'N'. Etherboot will now get a
+DHCP lease and download the GRUB image. GRUB will present you with a list of
+entries in your menu.lst; hit 'Enter' after selecting the one you want. Your OS
+shouldn't take any significant time to load over 100Mbps Ethernet; it's
+certainly faster than a floppy!</p>
+
+</body>
+</section>
+</chapter>
+
+</guide>
+

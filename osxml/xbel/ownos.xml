@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "../dtd/xbel-1.0.dtd">
+<!-- $Id: ownos.xml,v 1.2 2002/07/30 01:13:53 zhware Exp $ -->
+
 <xbel id="ownos">
 <info><metadata owner="sto@zhware.net"/></info>
 <title>Code Your Own OS Links</title>
