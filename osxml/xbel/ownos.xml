@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "../dtd/xbel-1.0.dtd">
+<xbel id="ownos">
+<info><metadata owner="sto@zhware.net"/></info>
+<title>Code Your Own OS Links</title>
+<desc>
+First I tried to make full index of related projects but there are sooooooo many :0( So here I&apos;ll put the links to OS related <b>links collections</b> (something like list of lists [LoL] ;0) ).
+</desc>
+
+<folder id="oslists"><title>Related projects for OSes</title><desc></desc>
+   <bookmark href="http://www.500mhz.net/ndx.html" visited="">
+      <title>The OS developers index</title>
+      <desc>huge list of links to many OSes (Last updated May, 2000)</desc>
+   </bookmark>
+   <bookmark href="http://www.freeos.com/" visited="">
+      <title>FreeOS</title>
+      <desc>The Resource Center for Free Operating Systems - links, articles, howtos. Very good place. I like it. Updated almost every day.</desc>
+   </bookmark>
+   <bookmark href="http://tunes.org/Review/OSes.html" visited="">
+      <title>Review of Operating Systems</title>
+      <desc>Index favors original and research operating systems. In each category, systems are listed in alphabetical order (Last updated April, 2000).</desc>
+   </bookmark>
+   <bookmark href="http://www.fuhr.org/~mfuhr/computers/os.html" visited="">
+      <title>Mike Fuhr&apos;s Operating System Resources</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://www.cs.arizona.edu/people/bridges/oses.html" visited="">
+      <title>Current OS Projects and OS-related research</title>
+      <desc>Pointers to all sorts of neat operating system projects scattered across the WWW.</desc>
+   </bookmark>
+   <bookmark href="http://sourceforge.net/softwaremap/trove_list.php?form_cat=144" visited="">
+      <title>OS Kernels</title>
+      <desc>SourceForge hosted projects. Usualy have CVS pool, help and developers forums.</desc>
+   </bookmark>
+   <bookmark href="http://www.visopsys.org/osdev/index.html" visited="">
+      <title>Visopsys OS Development</title>
+      <desc>Collection of source code, information, and links related to general Operating Systems&apos; Development on the Web.</desc>
+   </bookmark>
+   <bookmark href="http://www.acm.uiuc.edu/sigops/eoh98/" visited="">
+      <title>A Distributed Fish Enviroment</title>
+      <desc>the FishNet was created as a way for SigOps members to demonstrate the operating systems they have individually written from scratch</desc>
+   </bookmark>
+   <bookmark href="http://www.execpc.com/~geezer/osd/index.htm" visited="">
+      <title>OS for Dummies (OSD)</title>
+      <desc>A project of the <uri>news:alt.os.development</uri></desc>
+   </bookmark>
+   <bookmark href="http://AaronGray.members.beeb.net/osdev.html" visited="">
+      <title>Aaron Gray&apos;s links</title>
+      <desc>long list with useful links from <uri>news:alt.os.develop</uri> newsgroup postings</desc>
+   </bookmark>
+   <bookmark href="http://members.home.net/mhewii/welcome.htm" visited="">
+      <title>MhewII&apos;s Web Space</title>
+      <desc>info and links on using gcc/djgpp and nasm for hobby OSes.</desc>
+   </bookmark>
+   <bookmark href="http://www.keeble46.freeserve.co.uk/gui/" visited="">
+      <title>QBasic GUIs and OSes</title>
+      <desc></desc>
+   </bookmark>
+</folder>
+
+<folder id="docs"><title>Documentation</title><desc></desc>
+   <bookmark href="http://nondot.org/sabre/os/" visited="">
+      <title>Operating Systems Resource Center</title>
+      <desc>Very good links, separated by topics - boot process, protected mode, file formats,disk devices etc.</desc>
+   </bookmark>
+   <bookmark href="http://phantom.urbis.net.il/bphantom/" visited="">
+      <title>Black Phantom&apos;s Linkz</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://www.thesky.demon.co.uk/os-development/index.html" visited="">
+      <title>OS Development</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://www.magicnet.net/~jbryson/BGTCS_INDEX.HTML" visited="">
+      <title>Bryson&apos;s Graduate notes To Computer Science Index</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://www.azillionmonkeys.com/qed/tech.shtml" visited="">
+      <title>Paul Hsieh&apos;s Tech Page</title>
+      <desc>C &amp; ASM tutors and sources, optimization,Watcom C/C++,Ninja Programmer, Other OSes etc.</desc>
+   </bookmark>
+   <bookmark href="http://www.slip.net/~scholr/tech/papers.html" visited="">
+      <title>Technical Papers</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://x86.ddj.com/" visited="">
+      <title>Dr.Dobb&apos;s Microprocessor resources</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://www.acm.uiuc.edu/sigops/rsrc/" visited="">
+      <title>OS Development Resources</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://members.nbci.com/_XMCM/xorcoders/Gen/OS/index.html" visited="">
+      <title>Operating Systems Programming</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://www.phys.uu.nl/~mjanssen/control.php3" visited="">
+      <title>emJay&apos;s osdev pages</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://yoyo.cc.monash.edu.au/~davmac" visited="">
+      <title>Dav&apos;s PC Programming Page</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://qdn.qnx.com/support/docs/index.html" visited="">
+      <title>QNX Online Docs</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://citeseer.nj.nec.com/OperatingSystems/" visited="">
+      <title>Computer Science Directory</title>
+      <desc></desc>
+   </bookmark>
+</folder>
+
+<folder id="osguros"><title>OS gurus</title>
+<desc>People who help as in newsgroups</desc>
+   <bookmark href="http://users.erols.com/johnfine/" visited="">
+      <title>John Fine&apos;s home page</title>
+      <desc><b>NASM</b> information and links, boot code, v86 code, jloc linker/locator and partcopy - copy raw data (rawrite-like)</desc>
+   </bookmark>
+   <bookmark href="http://alexfru.chat.ru/eindex.html" visited="">
+      <title>Alexei A. Frounze home page</title>
+      <desc>Tiny OS Kernel, Page Translation Tutorial (paging), V86 Mode Monitor Tutorial, BootProg (FAT/12 and FAT/16 boot). <b>TASM,MASM</b></desc>
+   </bookmark>
+   <bookmark href="http://www.execpc.com/~geezer/" visited="">
+      <title>Christopher Giese</title>
+      <desc>CosmosOS, The Triple Fault Club.</desc>
+   </bookmark>
+   <bookmark href="http://www.mega-tokyo.com/os/" visited="">
+      <title>Dark Fiber</title>
+      <desc>Write Your Own OS FAQ</desc>
+   </bookmark>
+   <bookmark href="http://pizzi.cjb.net/" visited="">
+      <title>Ed Pizzi</title>
+      <desc>PizziOS, Elink</desc>
+   </bookmark>
+</folder>
+
+<folder id="community"><title>Community</title>
+<desc>Places where to ask, talk etc.</desc>
+   <bookmark href="http://os-dev.isa.net.au/" visited="">
+      <title>OS Development Message Board</title>
+      <desc>if too slow try <uri>http://203.37.8.154/boardindex.phtml</uri> insteed</desc>
+   </bookmark>
+   <bookmark href="http://www.osdev.org/cgi-bin/board.cgi" visited="">
+      <title>OS-Dev Message Board</title>
+      <desc></desc>
+   </bookmark>
+   <bookmark href="http://www.mega-tokyo.com/forum/" visited="">
+      <title>Mega-Tokyo Message Board</title>
+      <desc></desc>
+   </bookmark>
+</folder>
+
+</xbel>

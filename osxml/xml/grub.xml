@@ -1,0 +1,560 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd"
+[
+   <!ENTITY elf.ld SYSTEM "../src_esc/elf.ld.esc">
+   <!ENTITY menu.lst SYSTEM "../src_esc/menu.lst.esc">
+]>
+<!-- $Id: grub.xml,v 1.1 2002/07/02 07:43:38 zhware Exp $ -->
+
+<guide link="grub">
+<title>GRUB Tutorial</title>
+
+<author>
+<email link="geezer@execpc.com">Chris Giese</email>
+<homepage>http://www.execpc.com/~geezer/</homepage>
+</author>
+
+<date>$Date: 2002/07/02 07:43:38 $</date>
+<version>$Revision: 1.1 $</version>
+<copyright>last updates $Date: 2002/07/02 07:43:38 $</copyright>
+
+<keywordset>
+  <keyword>osdev</keyword>
+  <keyword>Chris Giese</keyword>
+  <keyword>OSD</keyword>
+  <keyword>boot</keyword>
+</keywordset>
+
+<abstract>
+A practical guide for working with GRUB.
+</abstract>
+
+<chapter id="download">
+<title>Getting GRUB</title>
+<section>
+<body>
+<p>
+<ul>
+<li><b>CVS</b>: <path>CVSROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/grub</path>
+<pre>
+<c>cvs -d:pserver:anoncvs@subversions.gnu.org:/cvsroot/grub</c>
+Password:<c>{Enter}</c>
+<c>cvs -d:pserver:anoncvs@subversions.gnu.org:/cvsroot/grub co grub</c>
+</pre>
+</li>
+<li><b>Source code</b>:<uri>ftp://alpha.gnu.org/gnu/grub/grub-0.92.tar.gz</uri></li>
+<li><b>Binaries</b>:<uri>ftp://alpha.gnu.org/gnu/grub/grub-0.92-i386-pc.tar.gz</uri></li>
+</ul>
+</p>
+<p>
+DOS and Windows users will need <c>PARTCOPY</c> or <c>RAWRITE</c>:
+<ul>
+<li><uri>http://www.execpc.com/~geezer/johnfine/index.htm#zero</uri></li>
+<li><uri>http://uranus.it.swin.edu.au/~jn/linux/rawwrite.htm</uri></li>
+<li><uri>http://www.tux.org/pub/dos/rawrite/</uri></li>
+</ul>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="build">
+<title>Building GRUB</title>
+<section>
+<body>
+<p>
+<ul>
+<li>UNIX
+<pre>
+<c>configure ; make ; make check ; make install</c>
+</pre>
+</li>
+<li>DOS and Windows
+<warn>
+(ha! forget it)
+</warn>
+</li>
+</ul>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="raw_floppy">
+<title>Installing GRUB on a floppy with no filesystem</title>
+<section>
+<body>
+
+<p>
+The unmodified <path>stage1</path> and <path>stage2</path> files work only with 1.44 meg
+floppies.
+<ol>
+<li>Get the GRUB binaries (files <path>"stage1"</path> and <path>"stage2"</path>)</li>
+<li>Concatenate the files <path>"stage1"</path> and <path>"stage2"</path> into one file:
+<pre>
+    (DOS)   <c>copy /b stage1 + stage2 boot</c>
+
+    (UNIX)  <c>cat stage1 stage2 &gt;boot</c>
+</pre>
+</li>
+<li>Write the file "boot" directly to the floppy disk:
+<pre>
+        (DOS)   <c>rawrite boot a:</c>
+                    -OR-
+        (DOS)   <c>partcopy boot 0 168000 -f0</c>
+
+        (UNIX)  <c>cat boot &gt;/dev/fd0</c>
+</pre>
+<note>
+PARTCOPY will give an error message because the file "boot"
+is much shorter than 0x168000 bytes, but this is OK.
+</note>
+</li>
+</ol>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="fs_floppy">
+<title>Installing GRUB on a floppy with a filesystem</title>
+<section>
+<body>
+<ol>
+<li>Make a bootable GRUB floppy with no filesystem, as described
+    above.</li>
+<li>Copy the files <path>"stage1"</path> and <path>"stage2"</path> to a second floppy disk,
+    one formatted with a filesystem that GRUB recognizes. To use
+    the GRUB <c>"setup"</c> command, these files must be stored in
+    subdirectory <path>"/boot/grub"</path>:
+<pre>
+(DOS)   <c>mkdir a:\boot
+        mkdir a:\boot\grub
+        copy stage1 a:\boot\grub
+        copy stage2 a:\boot\grub</c>
+
+(UNIX)  <c>mount /dev/fd0 /mnt
+        mkdir /mnt/boot
+        mkdir /mnt/boot/grub
+        cp stage1 /mnt/boot/grub
+        cp stage2 /mnt/boot/grub</c>
+</pre>
+</li>
+<li>
+<p>
+After GRUB is installed on floppy disk #2, the file <path>"stage2"</path>
+    must not be modified, deleted, defragged, or moved. If it
+    is modified in any way, the disk will no longer be bootable.
+    To prevent this, make the file read-only:
+<pre>
+(DOS)   <c>attrib +r +s stage2</c>
+
+(UNIX)  <c>chmod a-w stage2</c>
+</pre>
+    The DOS command above makes "stage2" a System file as
+    well as Read-only. This is needed to protect against DEFRAG.
+</p>
+<p>
+<note>
+    File <path>"stage1"</path> will be copied into the bootsector. If
+    this file is moved or deleted after GRUB is installed, the
+    disk will still be bootable.
+</note>
+</p>
+</li>
+<li>Boot your computer from the floppy with GRUB but no
+    filesystem. At the GRUB prompt, eject this floppy and insert
+    the formatted floppy disk (with the filesystem and <path>"stage1"</path>
+    and <path>"stage2"</path> files, possibly in directory <path>"/boot/grub"</path>.
+<ul>
+<li>If files <path>"stage1"</path> and <path>"stage2"</path> are stored in <path>"/boot/grub"</path> on
+    disk #2, you can install GRUB on disk #2 simply by typing:
+<pre>
+    <c>setup (fd0)</c>
+</pre>
+    This is apparently equivalent to this single command line:
+<pre>
+    install /boot/grub/stage1 d (fd0) /boot/grub/stage2 p
+            /boot/grub/menu.lst
+</pre>
+</li>
+<li>If files <path>"stage1"</path> and <path>"stage2"</path> are stored elsewhere, e.g. in
+    subdirectory <path>"/foo"</path>, install GRUB on the second floppy disk
+    like this (this is also a single command line):
+<pre>
+    install=(fd0)/foo/stage1 (fd0) (fd0)/foo/stage2 0x8000 p
+            (fd0)/foo/menu.lst
+</pre>
+Floppy disk #2 (the disk with the filesystem) is now bootable.
+</li>
+</ul>
+</li>
+</ol>
+<note>
+Boot from disk #2, copy new/modified "stage2", and re-run
+"setup" or "install"? Will this work? (xxx - GRUB is not a
+shell -- it can't copy files, or list directories -- can it?)
+</note>
+<p>
+Install Syntax:
+</p>
+<p>
+<ul>
+<li><b>0x8000</b> --
+    This value gets embedded into the bootsector
+    of the floppy to indicate the address that
+    stage2 should be loaded into memory.
+</li>
+<li><b>p</b> --
+    Modifies stage2, to report to the kernel the partition
+    that stage 2 was found on (I think).
+</li>
+<li><b>(fd0)/boot/grub/menu.lst</b> --
+    Modifies stage2, and tells it where to load the
+    <path>menu.lst</path> (bootmenu) configuration file from.
+</li>
+</ul>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="multiboot">
+<title>Making a Multiboot kernel</title>
+<section id="header">
+<title>Multiboot header</title>
+<body>
+<p>
+Whatever its file format, your kernel MUST have a Multiboot
+header. This header
+<ol>
+<li>must be aligned on a dword (4-byte) boundary, and</li>
+<li>must appear in the first 8K of the kernel file.</li>
+</ol>
+</p>
+<p>
+<note>
+An address within the first 8K of the .text section
+is not necessarily within 8K of the start of the file.
+</note>
+</p>
+</body>
+</section>
+
+<section id="elf">
+<title>ELF kernels</title>
+<body>
+<p>
+GRUB understands the ELF file format directly. If your kernel
+is ELF, you can use the simple Multiboot header shown here:
+<pre>
+MULTIBOOT_PAGE_ALIGN   equ 1&lt;&lt;0
+MULTIBOOT_MEMORY_INFO  equ 1&lt;&lt;1
+
+MULTIBOOT_HEADER_MAGIC equ 0x1BADB002
+MULTIBOOT_HEADER_FLAGS equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO
+CHECKSUM               equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+
+; The Multiboot header (in NASM syntax)
+align 4
+dd MULTIBOOT_HEADER_MAGIC
+dd MULTIBOOT_HEADER_FLAGS
+dd CHECKSUM
+</pre>
+</p>
+<p>
+Put this near the beginning of your kernel startup code, then
+build your kernel. After the kernel is built, you can use the
+GRUB <c>"mbchk"</c> utility to test if the kernel complies with
+Multiboot.
+</p>
+<p>
+<note>
+mbchk in GRUB v0.90 will sometimes report that a kernel
+is Multiboot-compliant when it's not. This happens, for example,
+if you use the Multiboot header, no aout kludge (see below), and
+binary kernel file format.
+</note>
+</p>
+</body>
+</section>
+
+<section id="load">
+<title>Kernel load address</title>
+<body>
+<p>
+GRUB reads the physical address (load address; LMA) of the
+kernel from the ELF file. This value must be
+<ol>
+<li>at or above 1 meg, and</li>
+<li>below the end of physical RAM</li>
+</ol>
+</p>
+<p>
+If the load address is below 1 meg, you get error #7:
+        Loading below 1MB is not supported
+<note>
+This is a limitation of GRUB, not of Multiboot.
+</note>
+If the load address is beyond the end of RAM, you get error #28:
+        Selected item cannot fit into memory
+</p>
+<p>
+And if you use a very high address like 0xC0000000, the math
+apparently overflows, and you get error #7 again.
+<note>
+"mbchk" does not check for these errors.
+</note>
+Normally, the physical address is the same as the VMA, and is
+set either in the linker script or on the linker command line
+(<c>"ld -Ttext=0x100000 ..."</c>). If your version of <c>'ld'</c> supports it,
+the physical and virtual addresses can be specified separately
+in the linker script using 'AT':
+<pre link="../src/elf.ld">
+&elf.ld;
+</pre>
+Link with <c>"ld -T elf.ld --cref -Map krnl.map -o ktnl.elf ....."</c>.
+After linking, use <c>'objdump -h'</c> to check that the addresses
+are all correct.
+</p>
+</body>
+</section>
+
+<section id="coff">
+<title>DJGPP COFF kernels and other file formats</title>
+<body>
+<p>
+DJGPP users can make ELF files using these tools:
+<uri>http://www.multimania.com/placr/binutils.html</uri>
+</p>
+<p>
+<note>
+This server is often difficult to reach. Someone should
+mirror these tools.
+</note>
+I recommend building a regular COFF kernel, then doing this:
+<pre>
+<c>objcopy-elf -O elf32-i386 krnl.cof krnl.elf</c>
+</pre>
+</p>
+<p>
+Failing this, you can make GRUB load a COFF kernel by using the
+"aout kludge". This uses additional fields at the end of the
+Multiboot header, like this:
+<pre>
+MULTIBOOT_PAGE_ALIGN   equ 1&lt;&lt;0
+MULTIBOOT_MEMORY_INFO  equ 1&lt;&lt;1
+MULTIBOOT_AOUT_KLUDGE  equ 1&lt;&lt;16
+
+MULTIBOOT_HEADER_MAGIC equ 0x1BADB002
+MULTIBOOT_HEADER_FLAGS equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_AOUT_KLUDGE
+CHECKSUM               equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+
+; The Multiboot header
+   align 4
+mboot:
+   dd MULTIBOOT_HEADER_MAGIC
+   dd MULTIBOOT_HEADER_FLAGS
+   dd CHECKSUM
+; fields used if MULTIBOOT_AOUT_KLUDGE is set in MULTIBOOT_HEADER_FLAGS
+   dd mboot ; these are PHYSICAL addresses
+   dd code  ; start of kernel .text (code) section
+   dd edata ; end of kernel .data section
+   dd end   ; end of kernel BSS
+   dd start ; kernel entry point (initial EIP)
+</pre>
+</p>
+<p>
+<note>
+The "aout kludge" works with binary and other file
+formats, too.   (xxx - untested; should be correct)
+</note>
+</p>
+<p>
+<note>
+GRUB v0.90 will ignore the aout kludge if it's present
+in an ELF file.
+</note>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="boot">
+<title>Booting</title>
+<section>
+<body>
+<p>
+<ol>
+<li>Make sure your kernel is some convenient place where GRUB
+    can find it. It need not be on the floppy disk.</li>
+
+<li>Boot from a GRUB floppy.</li>
+
+<li>(Optional) Tell GRUB what device to use for its root
+    directory:
+<pre>
+        root (hd0,1)
+</pre>
+    This "mounts" the 2nd primary partition on the 1st hard
+    drive as the root directory.
+</li>
+<li>Tell GRUB where your kernel is:
+<pre>
+        kernel /krnl.elf
+</pre>
+    If you did not specify the root device, you must give the
+    device explicitly at the start of each path name:
+<pre>
+        kernel (hd0,1)/krnl.elf
+</pre>
+</li>
+<li>If GRUB has no complaints about the kernel file, boot it:
+<pre>
+        boot
+</pre>
+</li>
+</ol>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="grub2krnl">
+<title>Passing system information from GRUB to your kernel</title>
+<section>
+<body>
+<p>
+Upon entry to the 32-bit kernel
+<ol>
+<li>CS points to a code segment descriptor with base address 0
+   and limit 4 gig - 1</li>
+<li>DS, SS, ES, FS, and GS point to a data segment descriptor
+   with base address 0 and limit 4 gig - 1</li>
+<li>A20 is enabled</li>
+<li>Paging is disabled</li>
+<li>Interrupts are disabled. No IDT is defined.</li>
+<li>The size and location of the GDT and selector values are
+   undefined. Your kernel should create it's own GDT as soon
+   as possible.</li>
+<li>EAX=0x2BADB002</li>
+<li>EBX contains the linear address of (i.e. a pointer to) a
+   block of system and bootstrap information:
+<pre>
+/* The Multiboot information.  */
+typedef struct multiboot_info
+{
+   unsigned long flags;
+   unsigned long mem_lower;
+   unsigned long mem_upper;
+   unsigned long boot_device;
+   unsigned long cmdline;
+   unsigned long mods_count;
+   unsigned long mods_addr;
+   union
+   {
+      aout_symbol_table_t aout_sym;
+      elf_section_header_table_t elf_sec;
+    } u;
+    unsigned long mmap_length;
+    unsigned long mmap_addr;
+} multiboot_info_t;
+</pre>
+</li>
+</ol>
+</p>
+<p>
+This information can be accessed from C code by pushing the
+pointer in EBX onto the stack before calling main():
+</p>
+<p>
+<pre caption="ASM startup code">
+...
+push ebx
+call _main 	; "call main" for Linux/ELF
+...
+</pre>
+</p>
+<p>
+<pre caption="C code">
+#include &lt;multiboot.h&gt;
+...
+int main(multiboot_info_t *boot_info)
+{       if(boot_info-&gt;flags &amp; 2)
+	{       kprintf("the command line is:\n'%s'\n",
+			(char *)boot_info-&gt;cmdline); }
+       	 	...
+</pre>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="menu">
+<title>Making a boot menu (file "menu.lst")</title>
+<section>
+<body>
+<p>
+Example 1:
+<pre>
+        # Entry 0:
+        title   WildMagnolia
+        root    (fd0)
+        kernel  /boot/kernel.elf
+        module  /boot/mod_a
+        module  /boot/mod_b
+</pre>
+This is also example for loading modules.
+</p>
+<p>
+Example 2:
+<pre link="../src/menu.lst" caption="menu.lst">
+&menu.lst;
+</pre>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="modules">
+<title>Loading modules with the kernel</title>
+<section>
+<body>
+TODO
+</body>
+</section>
+</chapter>
+
+<chapter id="other">
+<title>Other</title>
+<section id="gzipped">
+<title>gzip-compressed kernels</title>
+<body>
+GRUB have native support for gzip compression. It can boot without any
+modifications your gzipped kernel:
+<pre>
+<c>gzip -c -9 krnl.elf &gt; krnlz</c>
+</pre>
+And tell GRUB to boot <path>kernlz</path>.
+<pre>
+kernel /boot/kernlz
+</pre>
+</body>
+</section>
+</chapter>
+
+<chapter id="related">
+<title>Related Links</title>
+<section>
+<body>
+<ul>
+<li><uri link="http://www.execpc.com/~geezer/osd/boot/grub-how.txt">Origin of this tutorial</uri></li>
+<li><uri link="http://savannah.gnu.org/projects/grub/">GRUB project page</uri></li>
+<li><uri link="http://www.washingdishes.freeuk.com/grubtut.html">Another GRUB tutorial</uri></li>
+<li><uri>http://www.gnu.org/software/grub/</uri></li>
+</ul>
+</body>
+</section>
+</chapter>
+
+</guide>

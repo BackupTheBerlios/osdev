@@ -1,0 +1,337 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd">
+<!-- $Id: pic.xml,v 1.1 2002/07/02 07:43:38 zhware Exp $ -->
+
+<guide link="pic">
+<title>Advanced Programmable Interrupt Controller</title>
+<author>
+<email link="mrieker@o3one.org">Mike Rieker</email>
+<title>author</title>
+<homepage>http://www.o3one.org/</homepage>
+</author>
+<date>$Date: 2002/07/02 07:43:38 $</date>
+<version>$Revision: 1.1 $</version>
+<copyright>last updated $Date: 2002/07/02 07:43:38 $</copyright>
+
+<keywordset>
+   <keyword>osdev</keyword>
+   <keyword>Mike Rieker</keyword>
+   <keyword>devices</keyword>
+   <keyword>interrupts</keyword>
+   <keyword>PIC</keyword>
+</keywordset>
+
+
+<abstract>
+Though I had originally wrote my APIC code over a year ago, I've been playing with it recently, so I thought I'd write about it.  This is not a complete treatment, but it contains stuff that the docs for the chips don't seem to tell.
+</abstract>
+
+<chapter id="intro">
+<title>Introduction</title>
+<section>
+<body>
+<p>There are basically two things here to consider.</p>
+<ol>
+<li>
+<p>Built into all recent x86 CPU chips (Pent Pro and up) is a thing called a Local APIC.  
+It is addressed at physical addresses FEE00xxx.  
+Actually, that is the default, it can be moved by programming the MSR that holds it base address.</p>
+<p>It has many fun things in it.  The big thing is that you can interrupt other CPU's in a multiprocessor system.  But if you just have a uniprocessor, there are useful things for it, too.</p>
+
+<p>The Local APIC is described in Chapter 7 of Volume 3 of the Intel processor books.</p></li>
+
+<li><p>Some motherboards have an IO APIC on them.  This is usually only found on multiprocessor boards.  Functionally, it replaces the 8259's.  You must essentially shut off the 8259's and turn on the IO APIC to use it.</p>
+
+<p>The IO APIC is typically located at physical address FEC00000, but may be moved by programming the north/southbridge chipset.</p>
+
+<p>The Intel chip number is 82093 and you can get the doc for it off of the Intel website.</p></li></ol>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="local_apic">
+<title>What the Local APIC Is</title>
+<section>
+<body>
+
+<p>As stated above, the Local APIC (LAPIC) is a circuit that is part of the CPU chip.  It contains these basic elements:</p>
+
+<ol><li>A mechanism for generating interrupts</li>
+<li>A mechanism for accepting interrupts</li>
+<li>A timer</li></ol>
+
+<p>If you have a multiprocessor system, the APIC's are wired together so they can communicate.  So the LAPIC on CPU 0 can communicate with the LAPIC on CPU 1, etc.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="apic_io">
+<title>What the IO APIC Is</title>
+<section>
+<body>
+
+<p>This is a separate chip that is wired to the Local APIC's so it can forward interrupts on to the CPU chips.  It is programmed similar to the 8259's but has more flexibility.</p>
+
+<p>It is wired to the same bus as the Local APIC's so it can communicate with them.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="fun">
+<title>Fun things to do with a Local APIC in a Uniprocessor</title>
+<section>
+<body>
+
+<p><note>this stuff also applies to multiprocessors, too</note></p>
+
+<p>One thing the LAPIC can help with is the following problem:</p>
+
+<p>An IRQ-type interrupt routine wishes to wake a sleeping thread, but this IRQ interrupt may be nested several levels inside other IRQ interrupts, so it cannot simply switch stacks as those outer interrupt routines would not complete until the old thread is re-woken.</p>
+
+<p>So we have to somehow switch out of the current thread and switch into the thread to be woken.  A way the LAPIC can help us is to tell it to interrupt this same CPU, but only when there are no IRQ-type interrupt handlers active.</p>
+
+<p>I call this a 'software' interrupt because the operating system software initiated the interrupt.  It is programmed into the LAPIC to be at a priority lower than any IRQ-type interrupt.</p>
+
+<p>So now if some IRQ-type routine wants to wake a thread, it makes the necessary changes to the datastructures, then triggers a software interrupt to itself.  Then, when all IRQ-type interrupt handlers have returned out, the LAPIC is now able to interrupt.It interrupts out of the currently executing thread and switches to the thread that was just woken.  Very neat.</p>
+
+<p>Without the LAPIC, your interrupt routine has to set a flag in memory somewhere that each IRET has to check for.  So each IRET checks this flag and checks to see if it is the 'last' IRET.  It is more efficient to let the LAPIC do this testing for you.</p>
+
+<p>So now we have to make this software LAPIC interrupt have a lower priority than IRQ interrupts.  We do this by studying how the LAPIC assigns priority to interrupts.  This is a bit lame but it works ok.  The priority is based on the vector number we choose for the interrupt.  Interrupt vectors are numbered 0x00 through 0xFF in Intel CPUs.  The LAPIC assigns a priority based on the first of the two hex digits and ignores the second digit.  Thus, any interrupts using vectors 0x50 through 0x5F have the same priority.  So if you block something at priority 0x52, you block all interrupts in the range 0x50 through 0x5F.</p>
+
+<p>Now the CPU itself uses vectors in the range 0x00..0x1F for exceptions, so we don't want to use those for LAPIC interrupts.  This means we can use a vector numbered 0x20 or 0x2F or somewhere in that range.  We will have to redirect the IRQ interrupts to vectors 0x30..0x3F or something even higher if necessary, by re-programming the 8295's.  Now we can block software interrupts without blocking IRQ interrupts.</p>
+
+<p>The LAPIC's priority can be set by writing the LAPIC's TSKPRI (task priority) register.  So if you want to block all interrupts through level 0x2F, just write a 0x20 (or 0x2B, etc) into the TSKPRI and you have blocked those interrupts.</p>
+
+<p>Now the LAPIC is not really connected to the 8259's.  You cannot block 8259 generated interrupts with the LAPIC.  Likewise, being in an IRQ-type interrupt handler does not block any LAPIC interrupts.  So we have to manually block/unblock the softints at the beginning of our IRQ handler.  Just push the LAPIC's TSKPRI register, set it to 0x20 and handle your IRQ interrupt as usual.  When done, pop the saved LAPIC's TSKPRI then IRET.</p>
+
+<p>So the IRQ interrupt handler looks something like:</p>
+
+<pre>
+ entry:                           # cpu hw ints inhibited on entry
+      push LAPIC's TSKPRI         # save previous TSKPRI, either 00 or 20
+      movl $0x20, LAPIC's TSKPRI  # make sure softint delivery inhibited now
+      sti                         # let cpu process higher priority interrupts
+      push general registers      # save registers used by interrupt handlers
+      process interrupt           # process the IRQ interrupt level
+      pop general registers       # restore clobbered registers
+      cli                         # prevent nesting until we have unwound stack
+      send EOI to the 8259's      # let 8259's deliver this IRQ level again after iret
+      pop LAPIC's TSKPRI          # restore TSKPRI, possibly allowing softints after iret
+      iret
+</pre>
+<p>The software interrupt handler looks something like:</p>
+<pre>
+ entry:                           # cpu hardware interrupt delivery enabled
+      movl $0x20,LAPIC's TSKPRI   # prevent nesting of software interrupts
+      send EOI to LAPIC           # allow local APIC to queue another interrupt
+      save general registers
+      switch stack to highest priority thread
+      restore general registers
+      cli                         # prevent nesting until we have unwound stack
+      movl $0,LAPIC's TSKPRI      # allow local APIC to deliver softints after the iret
+      iret
+</pre>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="else">
+<title>Something else the Local APIC is good for in a Uniprocessor:</title>
+<section>
+<body>
+
+<p>Another use for the LAPIC is that it has a built in timer.  So you can set the timer for any interval and it will generate an interrupt.It basically has a 32-bit counter that runs at the bus speed, like 100MHz.  So what I use it for is the quantum reschedule interrupt.  If a single thread uses the CPU for a whole tenth of a second, this timer interrupts it and lowers the thread's priority.  Then if there is an equal priority thread waiting, it switches to it.</p>
+<p>This is particularly attractive in a multiprocessor system, as there is one such timer per CPU chip, so you have one quantum timer per executing thread to work with.</p>
+<p>The quantum timer interrupt handler is very similar to the regular softint handler, except it decrements the current thread's priority.  So I put the quantum timer on a vector in the 0x20..0x2F range right next to the regular softint vector.  Thus writing 0x20 to the TSKPRI register blocks both softints and quantum ints.</p>
+<p>Now I couldn't resist the temptation to muck it up by folding in my normal timer queue stuff as I can get basically 10nS resolution on my timer requests.  So I have it designed such that whichever CPU queued the next-to-expire timer request, gets its LAPIC taken over to service the timer queue, until another CPU comes along with an even earlier timer request, or the thread's quantum is going to run out earlier than the timer request.  So my current timer handler is actually a bit more complicated than the one shown above.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="multicpu">
+<title>Multiprocessor uses for the Local APIC</title>
+<section>
+<body>
+
+<p>Having the Local APIC is essential in a multiprocessor.  Without it, the motherboard would have to provide some equivalent functionality.</p>
+<p>One function fits in nicely with the 'softint' stuff described for the uniprocessor.  We just generalize it a bit.  In a general multi-processor OS, an IRQ interrupt handler just needs to 'wack' *some* CPU to handle the newly woken thread, not necessarily its own.  With the LAPIC, all it has to do is tell its LAPIC to send a message to the current lowest priority LAPIC that it is connected to, possibly including itself.</p>
+
+<p>Something unique to multiprocessor systems is the following situation:</p>
+<ol><li>Two or more processors are mapped to the same process at the same time, presumably running different threads in that process</li>
+<li>One of the CPU's (threads) unmaps a memory region and marks the corresponding pagetable entries as being 'not-present'</li>
+<li>The CPU executes INVLPG instructions to wipe out any left over cached copies of the pagetable entries it has</li>
+<li>Now that CPU has to tell the other CPU to invalidate any cached pagetable entries it has.  It can do this with the LAPIC's.  It sends an interrupt out to tell the other CPU's to invalidate their pagetable entries at that virtual address.</li></ol>
+
+<p>I use a very high priority interrupt for this purpose, even higher than any IRQ interrupts.  This is because I have the originating CPU wait for the target CPU's to acknowledge that they have processed the invalidate before continuing on.  So I want the target CPU's to process the interrupt immediately.</p>
+
+</body>
+</section>
+
+<section id="lapic">
+<title>Another fun thing to do with LAPIC's in a multiprocessor:</title>
+<body>
+
+<p>You have implemented a kernel debugger.  One CPU hits a breakpoint and traps to the kernel debugger.  The other CPU's are still merrily churning away doing who-knows-what.  So you can interrupt them (my OS sends them an NMI) so they will also call the debugger.  This way you will have stable datastructures to examine and you will also be able to see just what the other CPU's were doing at the time of the breakpoint.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="good_ioapic">
+<title>What the IOAPIC is good for</title>
+<section>
+<body>
+
+<p>The IOAPIC is generally only used in multiprocessor systems, and is not typically found on uniprocessor motherboards.</p>
+
+<p>The main advantage it has over 8259's is that it can distribute the IRQ type interrupts to various CPU's.  The 8259's will only deliver the interrupt to the boot CPU, whilst ignoring the others.</p>
+
+<p>Another small advantage it has is that it can route the PCI interrupts to separate vectors and not overlap the IRQ's.  My OS does not take advantage of this, but you may want to take on this challenge.</p>
+
+<p>The IOAPIC has a table of 24 64-bit registers.  This was extreme overkill, IMO, as less than 32 bits are used from each.  But anyway, that's the way it is.  Also, the registers are accessed indirectly, there is an 'address' register and a 'data' register.  Fortunately, like the 8259 and unlike the LAPIC, the IOAPIC can be programmed at boot time then left alone for the rest of system operation.</p>
+<p>Each of the 24 registers has an interrupt source that is hardwired from the motherboard design.  Standard designs follow this convention:</p>
+<ul><li>IRQ's 0..15 : IOAPIC registers  0..15</li><li>PCI A..D  : IOAPIC registers 16..19</li></ul>
+
+<p>I do not know what they use 20..23 for.  It is possible that 23 is used for SMI, but I haven't ever needed to use it, so I haven't research it.  This is left as an excercise to the reader.</p>
+
+<p>The trick to programming these things is setting the polarity and trigger mode.  For the IRQ 0..15 interrupts, set it to 'edge triggered, active high'mode (both {13} and {15} zero).  
+For the PCI A..D interrupts, set it to 'level triggered, active low' (both {13} and {15} one).  At least that's what works on my motherboard.</p>
+
+<p>Now here's where you can get creative.  Each of the interrupts can be programmed with any of the 224 vectors the CPU is capable of (we don't use 0x00..0x1F, just 0x20..0xFF).  Like the LAPIC's, the IOAPIC's will assign a priority to the interrupt based on the vector you give it.  And also like the LAPIC's, the dumb things only use the 4 top bits of the vector number to distinguish priority, and ignore the low 4 bits.  So we have to compromise and group 2 interrupts per level.  So you want to assign the lowest priority interrupts to the lowest vector numbers.</p>
+<p>Conventionally, from highest to lowest priority, the IRQ's go 0,1,2,8,9,10,11,12,13,14,15,3,4,5,6,7.  You can assign the vectors to the IRQ's in that order or any order you wish.  Whichever IRQ you give the highest vector number to will be the highest priority, etc.  I just stuck with the conventional assignment as I can't think of any reason not to.</p>
+<p>So we have 20 vectors to assign, 16 for the IRQ's and 4 for the PCI's.  As I said, in my OS I map the PCI interrupts onto the IRQ's like the BIOS set up, you may want to do different.  So all I really need is 16 vectors.I want to leave some at the bottom (for softint stuff) and some at the top (for high-priority LAPIC interrupts).</p>
+<p>So I can get away with using vector numbers 0x74, 0x7C, 0x84, 0x8C, ... 0xE4, 0xEC.  I assign these to the usual IRQ priorities 7 (lowest), 6, 5, 4, ..., 1, 0.  This means I program IOAPIC interrupt register 0 with the vector for IRQ 0 which I want to be 0xEC, as IRQ 0 is the highest priority.  I program IOAPIC interrupt register 1 with 0xE4 as IRQ 1 is the next highest priority.  And so on, until I have programmed the first 16 of the IOAPIC's interrupt registers.</p>
+<p>I seem to get useless interrupts on the IRQ 2 line, so I set this table entry to be disabled.</p>
+<p>Now for the truly exciting part, programming the next four interrupt registers that correspond to PCI interrupts A..D.  I chickened out here.  It would be nice to program these completely independent of the IRQ interrupts.  Problem is, almost all controller cards report that they use INT-A to send their interrupt.  So the motherboards scramble the actual vectors around, so INT-A on slot 10 might actually come in as INT-B to the IOAPIC, and INT-A on slot 9 might come in as INT-C to the IOAPIC.  Only the BIOS (or mobo tech doc) knows the answer to this puzzle.</p>
+
+<p>It would have been nice if the PCI BIOS would have provided a call to retrieve this nightmare but it doesn't.  So what I do is go out to the northbridge/southbridge chipset and retrieve the PCI-to-IRQ mapping that the BIOS has established.  In the PIIX4 chipset, this can be retrieved from the longword at offset 0x60 of device id 0x7110 (vendor id 0x8086).  Byte 0 of this long tells me what IRQ it is going to forward PCI-A interrupts to, so I program the IOAPIC to do the same thing by setting the IOAPIC interrupt register 16 to interrupt to the same vector used by the IRQ.  So if byte 0 has a 5, it means it has set up controllers connected to PCI-A interrupts to think they are IRQ 5's, so I put vector 0x84 in the IOAPIC's interrupt register 16.  Likewise, byte 1 of the long tells me what IRQ it has set INT-B cards to, so I write the vector number I set aside for that IRQ for the IOAPIC's interrupt register 17.  Same for bytes 2 and 3.  If the BIOS didn't find any PCI cards using a given PCI interrupt line, it sets the byte to 0x80 indicating that it is disabled.</p>
+
+<p>Finally, I simply disable entries 20 through 23.</p>
+
+<p>So what I end up with is:</p>
+<pre>
+  IOAPIC int reg     Vector
+               0     0xEC
+               1     0xE4
+               2     disabled
+               3     0x94
+               4     0x8C
+               5     0x84
+               6     0x7C
+               7     0x74
+               8     0xD4
+               9     0xCC
+              10     0xC4
+              11     0xBC
+              12     0xB4
+              13     0xAC
+              14     0xA4
+              15     0x9C
+              16     depends on what BIOS set up for PCI-A.
+                     For example if  5, use same as for IRQ  5, 0x84
+              17     depends on what BIOS set up for PCI-B.
+                     For example if  9, use same as for IRQ  9, 0xCC
+              18     depends on what BIOS set up for PCI-C.
+                     For example if 10, use same as for IRQ 10, 0xC4
+              19     depends on what BIOS set up for PCI-D.
+                     For example if 12, use same as for IRQ 11, 0xBC
+          20..23     disabled
+</pre>
+<p>Now if that doesn't make your head hurt, not only can you tell the IOAPIC what vector to use to process the interrupt, you can tell it which CPU to send the interrupt to.  Here, I take the easy way out.  I tell it to send it to the CPU that is currently at the lowest priority.  By priority, we mean the higher of what's in its LAPIC TSKPRI register or whatever interrupt it is currently servicing.</p>
+<p>One more little thing.  Since these interrupt registers are 64 bits, it takes two writes to set them.  So what I do is disable the entry by writing a disable value (0x10000) to the low half, then I write the desination info to the top half, then finally set the low half to what I want.</p>
+<p>Oh did I say one more thing?  There's more.  Some motherboards have a thingy that you must write to redirect the interrupts from the 8259's to the IOAPIC.  This is done by writing 0x70 to port 0x22 and 0x01 to port 0x23.  Also, you may want to disable the 8259's completely.  I do this by writing 0xFF to ports 0x21 and 0xA1.  So I disable the 8259's first, then program the IOAPIC, then write the ICMR (0x22,0x23) ports to accept IOAPIC interrupts.</p>
+<p>From this point on, the IOAPIC is programmed and you shouldn't have to access it again.</p>
+<p>When the IOAPIC receives an interrupt from a controller card, it forwards the interrupt out to the LAPIC's (as they are all wired together).  When an LAPIC is able to accept the interrupt (ie, its TSKPRI is lower than the vector and it is not currently servicing the same or higher level, and the CPU itself has interrupt delivery enabled), the LAPIC will signal an interrupt to the CPU and the CPU will interrupt through the corresponding interrupt vector that was programmed into the IOAPIC.</p>
+<p>Using the programming table above, to inhibit delivery of IRQ 7 and below in a particular CPU, just write 0x8C to the LAPIC's TSKPRI register.  This blocks delivery of all APIC generated interrupts in that CPU with vectors numbered up through 0x8F.  Other CPU's are free to accept those interrupts, though (assuming their corresponding TSKPRI register is not blocking them).  So if you want to block interrupts on ALL CPU's for a given level, you will have to set a spinlock after setting the TSKPRI register.  And your interrupt routine will also have to lock that same spinlock.  So if another CPU gets that IRQ 7 interrupt while you have the spinlock, it will wait for you to release the spinlock before continuing.  While not truly blocking the interrupt on other CPU's, it has the same basic effect.</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="misc">
+<title>Misc</title>
+<section id="phys_log">
+<title>Physical/logical id/destination</title>
+<body>
+
+<p>When an multiprocessor system starts, the hardware loads a physical id number into each CPU's LAPIC circuit.  This is how you can tell one CPU from another in the system.  You can also reprogram this number if you wish, but generally there's no need to.  It's sufficient that each LAPIC have a unique physical id.</p>
+<p>So if you set an IO or Local APIC interrupt register to target a particular physical id, then it will go to that CPU.  This may be fine for some instances, but there are cases where we want to interrupt a given set of CPU's.  Well we could send an interrupt to each one individually.  But that is inefficient and there is a better way.  Enter the 'logical destination'.  This is a bitmask thing.  If a sender has a bit set in its target mask that a destination has in its logical address mask, that target is eligible to receive the interrupt.  So what I do is set the following logical addresses up:</p>
+
+<ul><li>physical id 0 gets logical id 0x01</li>
+<li>physical id 1 gets logical id 0x02</li>
+<li>physical id 2 gets logical id 0x04</li>
+<li>physical id 3 gets logical id 0x08</li>
+<li>...</li>
+<li>physical id 7 gets logical id 0x80</li></ul>
+
+<p>This scheme limits me to 8 CPU's (as the logical destination mask is only 8 bits), but if you have more CPU's then you can double them up (eg, 0&amp;8 get mask 0x01, 2&amp;9 get mask 0x02, etc).  The APIC's also support a clustering mode, but I had no need for it so I didn't study it.</p>
+<p>Assuming we have less than 9 CPU's, we can easily select the targets by setting the appropriate bits in our interrupt mask.  Like for the IOAPIC destinations, I set all the bits so any CPU's I have are elegible for the interrupt, and I tell the IOAPIC to select the lowest priority amongst all those CPU's.  When I have to invalidate a shared pagetable entry, I can select only those CPU's that are also currently using that same pagetable and leave the others alone.</p>
+
+</body>
+</section>
+
+<section id="init">
+<title>Local APIC initialization</title>
+<body>
+
+<p>The Local APIC contains stuff that has to be initialzed.  It may be that the BIOS sets it for the boot processor so it will behave normally, but you will need to initialize it for any other processors, so you might as well do it for all so they come out the same.</p>
+
+<p>Here's what I put in it:</p>
+
+<ul><li>task priority (FEE00080) = 0x20 to inhibit softint delivery</li>
+<li>timer interrupt vector (FEE00320) = 0x10000 to disable timer interrupts</li>
+<li>performance counter interrupt (FEE00340) = 0x10000 to disable performance counter interrupts</li>
+<li>local interrupt 0 (FEE00350) = 0x08700 to enable normal external interrupts</li>
+<li>local interrupt 1 (FEE00360) = 0x00400 to enable normal NMI processing</li>
+<li>error interrupt (FEE00370) = 0x10000 to disable error interrupts</li>
+<li>spurious interrupt (FEE000F0) = 0x0010F to enable the APIC and set spurious vector to 15</li></ul>
+
+<p>Then after it is enabled, I set the local interrupt 0 and 1 again to the same thing, just to be sure the reset didn't keep them shut off.</p>
+
+<p>That's another thing the book doesn't quite say.  Local interrupt 0 is for interrupts on the CPU's normal interrupt pin.  Local interrupt 1 is for interrupts on the CPU's NMI pin.  Maybe it's in there somewhere, but I thought I state it here in case it's not or you can't find it.</p>
+
+<p>Finally, I program the logical destination address from the physical id, puquing (fr) if the physical id is .ge. 8.</p>
+
+</body>
+</section>
+
+<section id="gotcha">
+<title>A little gotcha</title>
+<body>
+
+<p>To tell the LAPIC to generate an interrupt, you have to write two registers.  In my OS (and probably all that use the thing), interrupt routines are allowed to write the LAPIC registers.  So you have to disable the CPU's interrupts while writing the two LAPIC registers or you will have a mess:</p>
+<pre>
+    pushfl
+    cli
+    movl target_mask, LAPIC's ICREG 1
+                       &lt;&lt; bad news if an interrupt broke 
+                       &lt;&lt; in here and changed ICREG 1
+    movl interrupt_type, LAPIC's ICREG 0
+    popfl
+</pre>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="summary">
+<title>Summary</title>
+<section>
+<body>
+
+<p>The APIC's provide a mechanism that is required in a multiprocessor system necessary for interprocessor communication.  They also contain convienient features for uniprocessor systems as well.</p>
+
+<p>If you want to see my APIC routines, they are in <uri>http://www.o3one.org/sources/oz_hw_smproc_486.s</uri><br/>It is in GNU assembler format.</p>
+
+<p>Mike's home page can be found at <uri>http://www.o3one.org/</uri></p>
+
+</body>
+</section>
+</chapter>
+
+</guide>

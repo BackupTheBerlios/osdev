@@ -1,0 +1,24 @@
+#!/bin/sh
+# Convert HTML-to-PDF(PS). 
+# Use htmldoc -- http://www.easysw.com/~mike/htmldoc/
+# Usage: h2p ps3 file.html
+#        h2p pdf14 file.html
+#
+# $Id: h2p,v 1.1 2002/07/02 07:43:38 zhware Exp $
+
+TYPE=$1
+FILE=$2
+NAME=`basename $1 .html`
+
+htmldoc --webpage --no-compression --quiet --bodyfont helvetica --charset UTF-8 --color -t $TYPE --jpeg --links --size a4 --truetype $FILE
+
+# If you cannot drive htmldoc on your computer use easysw.com service
+# In this case you need to specify public accessable URL for the HTML file.
+# Need also something like:
+# case $TYPE:
+#   ps3) FORMAT=.ps
+#   pdf14) FORMAT=.pdf
+#   *) msg "Error"; exit 99;
+# esac
+
+# wget -q -O $NAME.pdf http://www.easysw.com/htmldoc/pdf-o-matic.php?$FILE&FORMAT=$FORMAT

@@ -1,0 +1,13 @@
+#!/bin/sh
+# generate all OS Notes Site
+# $Id: doit,v 1.1 2002/07/02 07:43:38 zhware Exp $
+
+FILES=`find ../xml/ -type f -name '*.xml'`
+HTML_DIR=$HOME/public_html/osdev
+
+for file in $FILES; do
+  ./xml2all $file
+done
+cp ../img/* $HTML_DIR/img
+cp ../src/* $HTML_DIR/src
+./os_sync

@@ -1,0 +1,50 @@
+/* $Id: tim.css,v 1.1 2002/07/02 07:43:36 zhware Exp $ */
+
+.bottomline  { 
+  font-family: 'Trebuchet MS', Arial; font-size: 10pt; font-style: italic;                border-top-style: solid; border-width: 1 
+}
+.warntext    { font-family: 'Trebuchet MS', Arial; background-color: #ffff79 }
+.impotext    { font-family: 'Trebuchet MS', Arial; background-color: #a0a0a0 }
+.infotext    { font-family: 'Trebuchet MS', Arial; background-color: #d0d0d0 }
+.infohead    { font-family: 'Trebuchet MS', Arial; background-color: #FFFF79 }
+.infotext1   { font-family: 'Trebuchet MS', Arial; background-color: #c0c0c0 }
+.infohead1   { font-family: 'Trebuchet MS', Arial; background-color: #FFFFB9 }
+.popup       { }
+.popup_ie    { cursor: hand; color: #008000; text-decoration: underline }
+.path        { font-style: italic; }
+.code        { font-style: italic; }
+.abstract    { font-style: italic; }
+.copyright   { 
+        font-style: italic;
+        border-top-style: solid; border-width: 1px }
+
+a.menulink:link { color: #c0c0c0; text-decoration: none; }
+a.menulink:visited { color: #c0c0c0; text-decoration: none; }
+a.menulink:hover { color: #00ff00; text-decoration: underline; }
+a.menulink:active { color: #00ff00; text-decoration: underline; }
+
+.menu {
+        font-size: 0.75em;
+        font-weight: bold;
+        font-family: Verdana, Arial, Helvetica;
+        color: #a0a0a0;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+        background: black;
+}
+
+pre {
+        margin: 0.5em 5% 0.5em 3%;
+        background: #d0d0d0;
+        font-family: Lucida Console, Courier;
+        color: black;
+}
+
+body         { }
+h1           { 
+background-color: #FFFF00; font-family: 'Trebuchet MS', Arial; 
+border-style: solid; border-width: 1px 
+}
+h2           { border-bottom-style: solid; border-width: 2px }

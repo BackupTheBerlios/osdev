@@ -1,0 +1,26 @@
+#!/bin/sh
+# generate documents in several formats from XML
+# until now: txt, html 
+# $Id: xml2all,v 1.1 2002/07/02 07:43:38 zhware Exp $
+
+XML_FILE="$1"
+FNAME=`basename $XML_FILE .xml`
+HTML_DIR=$HOME/public_html/osdev
+TMP_FILE=$FNAME.tmp
+
+HTML_XSLT="../xsl/html.xsl"
+TXT_XSLT="-force-html -dump"
+RTF_XSLT="../xsl/rtf.xsl"
+PDF_XSLT=pdf14
+PS_XSLT=ps3
+XML2HTML=/usr/bin/xsltproc
+XML2TXT=/usr/bin/lynx 
+XML2P=./h2p
+
+cp $XML_FILE $HTML_DIR/
+$XML2HTML $HTML_XSLT $XML_FILE > $TMP_FILE
+$XML2HTML $RTF_XSLT  $XML_FILE > $HTML_DIR/$FNAME.rtf
+$XML2TXT  $TXT_XSLT  $TMP_FILE | awk 'NR>3' > $HTML_DIR/$FNAME.txt
+$XML2P    $PDF_XSLT  $TMP_FILE > $HTML_DIR/$FNAME.pdf
+$XML2P    $PS_XSLT   $TMP_FILE > $HTML_DIR/$FNAME.ps
+mv $TMP_FILE $HTML_DIR/$FNAME.html

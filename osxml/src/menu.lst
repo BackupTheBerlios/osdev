@@ -1,0 +1,48 @@
+#
+# Sample boot menu configuration file
+#
+
+#  default - boot the first entry.
+default 0
+
+# if have problem - boot the second entry.
+fallback 1
+
+# after 30 sec boot default.
+timeout 30
+
+# GNU Hurd
+title  GNU/Hurd
+root   (hd0,0)
+kernel /boot/gnumach.gz root=hd0s1
+module /boot/serverboot.gz
+
+# Linux - boot ot second HDD
+title  GNU/Linux
+kernel (hd1,0)/vmlinuz root=/dev/hdb1
+
+# booting Mach - get kernel from floppy
+title  Utah Mach4 multiboot
+root   (hd0,2)
+pause  Insert the diskette now!!
+kernel (fd0)/boot/kernel root=hd0s3
+module (fd0)/boot/bootstrap
+
+# booting OS/2
+title OS/2
+root  (hd0,1)
+makeactive
+# chainload OS/2 bootloader from the first sector
+chainloader +1
+
+# For booting Windows NT or Windows95
+title Windows NT / Windows 95 boot menu
+root        (hd0,0)
+makeactive
+chainloader +1
+# za boot na DOS ako Windows NT e instaliran
+# chainload /bootsect.dos
+
+# Colors change :0).
+title Change the colors
+color light-green/brown blink-red/blue

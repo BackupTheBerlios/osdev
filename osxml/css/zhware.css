@@ -1,0 +1,86 @@
+/* $Id: zhware.css,v 1.1 2002/07/02 07:43:37 zhware Exp $ */
+
+ADDRESS, BLOCKQUOTE, BODY, CAPTION, CENTER, DD, DIR, DIV, DL, DT, FORM, LI, MENU, OL, P, PRE, TD, TH, TR, UL {
+   color: #000000; font-weight: normal; font-family: Arial; font-size: 14px; 
+}
+
+BODY { background: #c0c0c0; margin-left: 4%; margin-right: 4%;
+       padding: 0; cursor: default;
+}
+
+H1 {color: #8c2931; font-family: Arial; font-weight: bold; font-size: 24px;}
+H2 {color: #8c2931; font-family: Arial; font-weight: bold; font-size: 20px;
+    border-bottom-style: solid; border-width: 1px;}
+H3 {color: #8c2931; font-family: Arial; font-weight: bold; font-size: 18px;}
+H4 {color: #8c2931; font-family: Arial; font-weight: bold; font-size: 16px;}
+H5 {color: #8c2931; font-family: Arial; font-weight: bold; font-size: 14px;}
+
+A {cursor: pointer; background: transparent}
+A:link {color: blue;text-decoration: underline}
+A:visited {color: #8c2931;text-decoration: underline}
+A:active {color: #8c2931;text-decoration: underline}
+A:hover {color: #8c2931;text-decoration: underline}
+a.altlink {text-decoration: none}
+a.menulink {text-decoration: none}
+
+ADDRESS {font-style: italic}
+BIG {font-size: 18px}
+SMALL, SUB, SUP {font-size: 12px}
+CITE {font-style: italic}
+CODE, KBD, SAMP, TT {font-size: 12px}
+
+HTML {margin: 0; padding: 0}
+BUTTON {cursor: auto}
+INPUT {cursor: auto}
+TEXTAREA {cursor: text}
+
+DT {font-weight: bold}
+TD, UL, OL {margin-left: 0}
+TH {font-weight: bold;text-align: center;margin-left: 0}
+
+PRE { 
+   margin: 0.5em 5% 0.5em 3%;
+   font-face: monospace; white-space: pre;  padding: 0.5em; }
+   
+
+.copyright {
+    text-align: right; font-size: 12px;
+    border-top-style: solid; border-width: 1px;}
+.menu {
+    text-align: right; font-size: 12px;
+    border-bottom-style: solid; border-width: 1px;}
+.abstract {font-size: 12px;}
+.infohead {background-color: #ffcc66 ; font-size: 12px}
+.infotext {background-color: #ddddff ; font-size: 12px}
+.secthead {font-weight: bold}
+.path {color: #8c2931; font:style: italic}
+.code {color: #8c2931; font:style: italic}
+        
+.note { 
+        margin-left: 20px; margin-right: 20px; 
+        border: solid 1px black; padding: 0.5em; 
+        background-color: #d0d0d0 ; font-size: 12px}
+.warntext {
+        margin-left: 20px; margin-right: 20px; 
+        border: solid 1px black; padding:0.5em; 
+        background-color: #ffcc66 ; font-size: 12px}
+.impotext {
+        margin-left: 20px; margin-right: 20px; 
+        padding:0.5em; 
+        background-color: #ddddff ; font-size: 12px}
+
+UL, MENU, DIR {list-style: disc} 
+
+OL {list-style: decimal}
+
+UL UL OL OL, UL OL UL OL, OL UL OL OL, OL OL UL OL, OL UL OL, OL OL {list-style: lower-alpha}
+
+OL UL OL OL, OL OL UL OL, UL OL OL OL, OL OL OL {list-style: lower-roman}
+
+OL OL OL OL {list-style: decimal}
+
+UL UL, OL OL UL UL, OL UL OL UL, UL OL OL UL, OL UL UL, UL OL UL {list-style: circle}
+
+OL UL UL UL, UL OL UL UL, UL UL OL UL, UL UL UL {list-style: square}
+
+UL UL UL UL {list-style: disc}

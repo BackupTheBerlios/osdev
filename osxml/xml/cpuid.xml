@@ -1,0 +1,134 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd"
+[
+  <!ENTITY vendor.c SYSTEM "../src_esc/vendor.c.esc">
+  <!ENTITY eax1.c SYSTEM "../src_esc/eax1.c.esc">
+]>
+<!-- $Id: cpuid.xml,v 1.1 2002/07/02 07:43:38 zhware Exp $ -->
+
+<guide link="cpuid">
+<title>CPUID &amp; Processor Identification</title>
+<author>
+<email link="sft3236@post.netlink.se">Jens Olsson</email>
+<title>author</title>
+</author>
+<date>$Date: 2002/07/02 07:43:38 $</date>
+<version>$Revision: 1.1 $</version>
+<copyright>last updated $Date: 2002/07/02 07:43:38 $</copyright>
+
+<keywordset>
+   <keyword>osdev</keyword>
+   <keyword>Jens Olsson</keyword>
+   <keyword>common</keyword>
+   <keyword>CPU</keyword>
+   <keyword>cpuid</keyword>
+</keywordset>
+
+<abstract>
+The Pentium processors and later provide an instruction called CPUID for CPU
+identification
+</abstract>
+
+<chapter id="intro">
+<title>Introduction</title>
+<section>
+<body>
+<p>
+If you are programming an os and want to use all new features added to newer processors you will need  way to check which features the current processor is compatible with. To do this on the Pentium processors and later is easy since you are provided an instruction called CPUID for this purpose. On the 486 and older it's harder. although some 486 processors support the CPUID instruction, most of them doesn't. It is possible to check whether the processor is a 8086, 286, 386 or 486 without the CPUID instruction. This can be done in various ways where one of them is to execute an instruction which only works on the processor checked and later. If the processor encounters an instruction it can't handle, an invalid opcode exception wil be generated.
+</p>
+<p>
+In this article we are going to go threw most of the things you need to do to identify your processor. 
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="no_pentium">
+<title>Checking for 8086, 286, 386, 486 processors</title>
+<section>
+<body>
+<p>
+TODO
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="cpuid">
+<title>The CPUID instruction</title>
+<section>
+<body>
+<p>
+The CPUID instruction is streightforward. The first you should do is to load EAX with 0. 
+CPUID returns different values in EAX, EBX, ECX and EDX depending on the value in EAX before the call. 
+When CPUID is executed with <c>EAX=0</c>, it will return the following:
+</p>
+<p>
+<ul>
+<li><b>EAX</b> --
+The largest value EAX can be set to before executing the CPUID instruction. If it is, lets say 5, you can call CPUID 5 times more with <c>EAX=1</c> for the first, 2 for the second and so on.</li>
+<li><b>EBX, EDX, ECX</b> --
+These registers together forms the often called "vendor string".</li>
+</ul>
+</p>
+<p>
+Each processor manufacturer have their own vendor string. For example, Intels vendor string is "GenuineIntel" and AMD's vendor string is "AuthenticAMD" while old Cyrix uses "CyrixInstead". 
+This is very important because the information retrieved if you call CPUID with <c>EAX&gt;0</c> is different between different manufacturers. 
+</p>
+<p>
+We have to store all this information in some variables for future use. The following C++ example will execute the CPUID instruction with <c>EAX=0</c> and store the information retrieved in 2 variables.
+</p>
+<p>
+<pre link="src/vendor.c">
+&vendor.c;
+</pre>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="eax1">
+<title>CPUID, EAX=1</title>
+<section>
+<body>
+<p>
+Now it gets even more interesting. If you execute CPUID while <c>EAX=1</c> instead you retrieve the processor family, model and stepping stored in EAX. You will also get a bitmap containing information on which functions (MMX, 3DNow etc.) that exists on the processor. Do not call CPUID with <c>EAX=1</c> if our variable, MaxEAX is less than 1. It is a bit more frustrating when using <c>EAX=1</c> because the processor manufacturers don't have the same meaning for the bits in the bitmap returned. Some are the same but many differ, we therefore have to check our VendorSign variable to determine how we should treat our bitmap. In this example we will make an array of all features in the bitmap that is correct for the Intel processor. We then check if AMD is used and change the array to the correct features. We will concentrate on Intel and AMD in this document. Adding support for Cyrix and other processors is left as an exercise for the reader;)
+</p>
+<p>
+<pre link="src/eax1.c">
+&eax1.c;
+</pre>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="todo">
+<title>TODO</title>
+<section>
+<body>
+<p>
+<ul>
+<li>Add information about L1 and L2 cache retrieved when <c>EAX=2</c>.</li>
+<li>Add information about detecting CPUID instruction and determine pre CPUID processor types.</li>
+</ul>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="related">
+<title>Related Sites</title>
+<section>
+<body>
+<p>
+<ul>
+<li><uri link="http://www.intel.com/design/xeon/applnots/241618.htm">AP-485 Intel(c) Processor Identification and the CPUID Instruction</uri></li>
+<li><uri link="http://www.sysid.subnet.dk/">Windows CPUID Utility</uri></li>
+</ul>
+</p>
+</body>
+</section>
+</chapter>
+
+</guide>

@@ -1,0 +1,266 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd"
+[ 
+   <!ENTITY hello.c SYSTEM "../src_esc/hello.c.esc">
+]>
+<!-- $Id: template.xml,v 1.1 2002/07/02 07:43:39 zhware Exp $ -->
+
+<guide link="template">
+<title>Template for OsDev XML Document</title>
+<author title="author">
+<email link="sto@zhware.net">Stoyan Zhekov</email>
+</author>
+<date>$Date: 2002/07/02 07:43:39 $</date>
+<version>$Revision: 1.1 $</version>
+<copyright>last updated $Date: 2002/07/02 07:43:39 $</copyright>
+
+<keywordset>
+   <keyword>osdev</keyword>
+   <keyword>Stoyan Zhekov</keyword>
+   <keyword>template</keyword>
+</keywordset>
+
+<abstract>
+I'll try to demonstrate all XML tags, available in the XML for OSDev documents.
+</abstract>
+
+<chapter id="para">
+<title>Paragraphs</title>
+<section>
+<body>
+<p>
+This is one paragraph from the current chapter.
+</p>
+<p>
+And this is the next paragraph.
+</p>
+</body>
+</section>
+<section>
+<title>Style tags in the paragraphs</title>
+<body>
+<p>
+Examples for <b>bold</b>, <i>italic</i>, <brite>brite</brite> <e>emphasis</e>.
+</p>
+<p>
+But better is to describe <b>meanning</b> like: <c>user_finction()</c> or
+<path>/path/to/some/file</path>.
+</p>
+</body>
+</section>
+<section>
+<title>Second section</title>
+<body>
+Body of the second section.
+</body>
+</section>
+</chapter>
+
+<chapter>
+<title>Chapter without id</title>
+<section>
+<title>First section</title>
+<body>
+The name and the link for this chapter is automaticaly generated.
+</body>
+</section>
+</chapter>
+
+<chapter id="notes">
+<title>Notes, source code etc.</title>
+<section>
+<body>
+<p>
+<note>
+This is example for note. The reading is optional.<br/>
+But better is to read notes. Sometimes they provide
+important information.
+</note>
+</p>
+<p>
+<note caption="Second note">
+The first note was with a caption auto-generated. This one is with
+entered caption.
+</note>
+</p>
+<p>
+<impo>
+This is very, very important information! Must read!
+</impo>
+</p>
+<p>
+<warn>
+If You start writing your documents in XML, you cannot stop. ;0):w
+</warn>
+</p>
+</body>
+</section>
+<section>
+<title>Source Code</title>
+<body>
+<p>
+The most beautiful thing is auto generating of links to source codes and titles.
+</p>
+<p>
+<pre>
+int main()
+{
+
+}
+</pre>
+</p>
+<p>
+This source code is with entered caption and link to source code.
+<pre caption="Hello world" link="src/hello.c">
+&hello.c;
+</pre>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="lists">
+<title>Lists</title>
+<section>
+<body>
+<p>
+In the documents you can use:
+<ol>
+<li>Numered lists</li>
+<li>Unnumered lists</li> -- demonstrate also ia list in the other list
+<ul>
+<li>List Entry 1</li>
+<li>List Entry 2</li>
+</ul>
+</ol>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="urls">
+<title>URLs</title>
+<section>
+<body>
+<p>
+The URLs are two types:
+<ol>
+<li>mail URLs -- <b>&lt;email&gt;</b>
+<ul>
+<li>unnamed mails:
+<pre>
+&lt;email&gt;author@example.com&lt;/email&gt; -> <email>author@example.com</email>
+</pre>
+</li>
+<li>named emails:
+<pre>
+&lt;email link="author@example.com"&gt;The Autor&lt;/email&gt; -> <email link="author@example.com">The Author</email>
+</pre>
+</li>
+</ul>
+</li>
+<li>link URLs -- <b>&lt;uri&gt;</b>
+<ul>
+<li>unnamed links:
+<pre>
+&lt;uri&gt;http://example.com/&lt;/uri&gt; -> <uri>http://example.com/</uri>
+</pre>
+</li>
+<li>named links:
+<pre>
+&lt;uri link="http://example.com/"&gt;The Example Page&lt;/uri&gt; -> <uri link="http://example.com/">The Example Page</uri>
+</pre>
+</li>
+</ul>
+</li>
+</ol>
+<note>
+<p>
+<b>Notes</b>
+</p>
+<p>
+<ol>
+<li>
+The original Gentoo's <b>&lt;mail&gt;</b> tags are also supported, but the difference is that the <b>@link</b> attribute for them is required, not optional.
+</li>
+<li>
+There is also - &lt;homepage&gt; link <b>only in the
+&lt;author&gt; tag</b> and it can be only unnamed link:
+<pre>
+&lt;author&gt;
+<b>&lt;homepage&gt;http://example.com/&lt;/homepage&gt;</b>
+&lt;/author&gt;
+</pre>
+</li>
+</ol>
+</p>
+</note>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="tables">
+<title>Tables</title>
+<section>
+<body>
+<p>
+XML for OsDev understand only:
+<ul>
+<li><b>&lt;tr&gt;</b> for rows</li>
+<li><b>&lt;th&gt;</b> for header cells</li>
+<li><b>&lt;ti&gt;</b> for information cells</li>
+</ul>
+</p>
+<p>
+<table>
+<tr>
+<th>Header1</th>
+<ti>Information</ti>
+<ti>Information again</ti>
+</tr>
+<tr>
+<th>Header2</th>
+<ti>Information is most important thing.</ti>
+<ti>More Information</ti>
+</tr>
+</table>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="images">
+<title>Images and Figures</title>
+<section>
+<body>
+<p>
+XML automaticaly generate figures caption and link to them.
+<ul>
+<li>Example for <b>&lt;img&gt;</b> tag.
+<p>
+<img src="img/thumb-fat-ide.jpg" border="1"/>
+</p>
+</li>
+<li>But better is <b>&lt;figure&gt;</b> tag.
+<p>
+<figure link="img/fat-ide.jpg" caption="OSSO Screenshot" short=" osso screenshot"/>
+</p>
+</li>
+<li>Figure with auto-generated caption.
+<p>
+<figure link="img/thumb-fat-ide.jpg"/>
+</p>
+</li>
+<li>Figure without a caption (can link to something)
+<p>
+<fig link="img/thumb-fat-ide.jpg" linkto="img/fat-ide.jpg" short="screenshot" />
+</p>
+</li>
+</ul>
+</p>
+</body>
+</section>
+</chapter>
+
+</guide>

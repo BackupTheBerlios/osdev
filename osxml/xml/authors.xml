@@ -1,0 +1,233 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd">
+<!-- $Id: authors.xml,v 1.1 2002/07/02 07:43:38 zhware Exp $ -->
+
+<guide link="authors">
+<title>OS XML Documents Authors Guide</title>
+<author>
+<email link="sto@zhware.net">Stoyan Zhekov</email>
+</author>
+<date>$Date: 2002/07/02 07:43:38 $</date>
+<version>$Revision: 1.1 $</version>
+<copyright>last updated $Date: 2002/07/02 07:43:38 $</copyright>
+
+<keywordset>
+   <keyword>osdev</keyword>
+   <keyword>Stoyan Zhekov</keyword>
+   <keyword>XML</keyword>
+   <keyword>documents</keyword>
+   <keyword>authors</keyword>
+   <keyword>guide</keyword>
+</keywordset>
+
+<abstract>
+Small HOWTO for the authors of OS Development XML documentation (OS XML).
+</abstract>
+
+<chapter id="intro">
+<title>Introduction</title>
+<section>
+<body>
+<p>
+The project is by the people at <uri>news:alt.os.development</uri> and its target is to help all who are interested in OS Development.
+The OS XML contains a collection of documents written by various OS developers
+around the world.
+Anyone is welcome to contribute with documents they have written. 
+The main part of project are the XML documents in CVS repository.
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="format">
+<title>Document format</title>
+<section>
+<body>
+<p>
+All documents are written in subset of XML, similar to <uri link="http://www.gentoo.org/doc/xml-guide.html">Gentoo Guide XML</uri>. Read this page - there are
+examples for the most used XML tags.
+In the OS XML distribution is included  <uri link="template.html">template file</uri> to ilustrate OS XML features.
+</p>
+<p>
+<note>
+<b>Notes:</b>
+<p>
+<ul>
+<li><c>@link attribute</c> in the <c>&lt;guide&gt; tag</c> contain XML document
+<b>filename without extension</b>. It is used for forming <c>other formats:</c>
+links.</li>
+<li>Use <c>$ Date $</c> and <c>$ Revision $</c> CVS keywords in <c>&lt;date&gt;</c> and <c>&lt;version&gt;</c> tags. They will be replaced with actual values when
+document is inserted in the CVS repository.</li>
+<li>Table of Content (TOC) for the document with links to chapter headers is
+generated automaticaly.</li>
+<li>Links to code listings are generated automaticaly.</li>
+<li>You need to escape HTML characters in the source codes. You can put link in the source listing caption to the original source code.</li>
+</ul>
+</p>
+</note>
+</p>
+</body>
+</section>
+<section>
+<title>Keywords order</title>
+<body>
+These is <b>&lt;keywordset&gt;</b> section in the XML guides. It help
+documents to be properly classified by keywords. The other possibility is
+defined some categories maybe.
+The defined order is not 100% required, it is just important for good documentation:
+<ol>
+<li>osdev -- define document as OS Development document</li>
+<li>Author Name</li>
+<li>Category -- common, devices, kernel, memory, sheduling, user interface</li>
+<li>Others ... -- some keywords, specific for the given document</li>
+</ol>
+</body>
+</section>
+</chapter>
+
+<chapter id="sources">
+<title>Including source codes</title>
+<section>
+<body>
+<p>
+Like a general rules:
+<impo>
+<ul>
+<li>If the source is small (&lt; 10 lines) put in directrly in the XML</li>
+<li>If the source is between 10 and 30 lines, upload it to the CVS repository,
+and use the <c>&lt;pre link="src/..."&gt;</c> tag with relative link and entity,
+like described below</li>
+
+<li>If the source is too big or it is some long specification, put it on some
+web server, and in the XML document just use <b>absolute link</b> to it.</li>
+</ul>
+</impo>
+</p>
+<p>
+It is important to mention, that if you decide to include some source code
+in XML documents, all HTML special characters (&gt;, &lt; , &amp; etc.) need
+to be <b>escaped</b>. For this you can use included in the CVS repocitory
+(directory <path>tools/</path>)<c>src_esc</c>i or some extrnal tool. 
+If you also want to make some syntax highlighting take a look at 
+<uri link="http://user.cs.tu-berlin.de/~schintke/x2html">Source to .html converters page</uri>.
+</p>
+<p>
+<ol>
+<li>Escape all sources from the <path>src/</path> directory. Put escaped sources
+in some other directory (for example <path>src_esc/</path> and let's the names
+to be <path>original file name + .esc extension</path>. So
+<pre>
+src/hello.c -&gt; src_esc/hello.c.esc
+src/linearfp.c -&gt; src_esc/linearfp.c.esc
+...
+</pre>
+</li>
+<li>In the beginning of your XML document put <b>entities</b>, defining path to escaped sources, you want to include. So the usual DOCTYPE declaration:
+<pre>
+&lt;!DOCTYPE guide SYSTEM "../dtd/guide.dtd"&gt;
+</pre>
+will become:
+<pre>
+&lt;!DOCTYPE guide SYSTEM "../dtd/guide.dtd"
+[
+  &lt;!ENTITY hello.c SYSTEM "../src_esc/hello.c.esc"&gt;
+]&gt;
+</pre>
+</li>
+<li>From this point everywhere in the document, where you want to include
+source code, just put <c>&amp;hello.c;</c> entity:
+<pre>
+&lt;pre link="src/hello.c"&gt;
+&amp;hello.c;
+&lt;/pre&gt;
+</pre>
+</li>
+<li>On the conversion step XSLT will replace all entities with secaped source codes</li>
+</ol>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="files">
+<title>Directories Structure</title>
+<section>
+<body>
+<p>
+The distribution is divided in the following directories:
+<ul>
+<li><path>dtd/</path> -- contain DTD file for the XML</li>
+<li><path>css/</path> -- several Cascade Style Sheets (.css) files for the HTML
+</li>
+<li><path>xsl/</path> -- xml-to-html etc. XSLT files
+ <note>
+ xml-to-txt processing in the moment is done by HTML-to-TXT conversion with
+ <c>lynx console browser</c>. Maybe in the future there will be xml-to-txt XSLT.
+ </note>
+</li>
+<li><path>xml/</path> -- OS Development documents in XML format
+</li>
+<li><path>img/</path> -- all images, used in the documents go to this directory.<note>
+Use relative links to images in your documents. For example:
+<pre>
+&lt;fig link="img/thumb1.jpg" linkto="img/image1.jpg short="screenshot" /&gt;
+</pre>
+</note>
+</li>
+<li><path>src/</path> -- all source codes, used in the documents.
+<note>
+You need to escape HTML characters in your documents (&amp;, &gt;, &lt; etc.).
+Source files however can not need to be changed. <e>TODO: something to make XML-ready sources (escape characters, maybe syntax highlight etc.)</e>.<br/>
+Use relative links to source codes in your documents. For example:
+<pre>
+&lt;pre caption="Hello world" link="src/hello.c"&gt;
+</pre>
+</note>
+</li>
+<li><path>tools/</path> -- some useful tools
+<ul>
+<li><c>os_sync</c> -- syncronize local and remote documents via rsync</li>
+<li><c>xml2all</c> -- convert one document from XML to several other formats</li>
+<li><c>doit</c> -- use the scripts above to convert and upload all documents.</li>
+</ul>
+</li>
+</ul>
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="cvs">
+<title>Working with CVS</title>
+<section>
+<body>
+<p>
+Everybody who want to contribute to the project will need basic CVS knowledge. 
+If you haven't experience with CVS see <uri link="http://www.openbg.net/sto/oswiki/moin.cgi/ConcurrentVersionsSystem">ConcurrentVersionsSystem OS Wiki page</uri>.
+</p>
+<p>
+You need to register yourself on <uri link="https://developer.berlios.de/account/register.php">BerliOS developer pages</uri>. The name of project is:
+<uri link="http://developer.berlios.de/projects/osdev/">Os Development</uri>.
+For details about using CVS check <uri>http://developer.berlios.de/cvs/?group_id=430</uri>.
+</p>
+<p>
+Some frequently use commands:
+<pre>
+* <c>cvs -d:ext:&lt;yourname&gt;@cvs.osdev.berlios.de:/cvsroot/osdev co osxml</c> -- get everything from the repository
+* <c>cd exported/files/; cvs update</c> -- update your local documents copy
+<warn>
+Please do this everytime before commiting. This will prevent commit conflicts.
+</warn>
+* <c>cd exported/files/; cvs diff</c> -- differences between CVS repository and you local copy od documents
+* <c>cd exported/files/; cvs commit -m "I change something"</c> -- commit changes to repository
+</pre>
+</p>
+<p>
+There is also <uri link="http://cvs.berlios.de/cgi-bin/cvsweb.cgi/?cvsroot=osdev">CVSWeb access to the repository</uri>.
+</p>
+</body>
+</section>
+
+</chapter>
+
+</guide>

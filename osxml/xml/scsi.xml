@@ -1,0 +1,271 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd">
+<!-- $Id: scsi.xml,v 1.1 2002/07/02 07:43:38 zhware Exp $ -->
+
+<guide link="scsi">
+<title>SCSI port</title>
+<author>
+<email link="mrieker@o3one.org">Mike Rieker</email>
+<title>author</title>
+<homepage>http://www.o3one.org/</homepage>
+</author>
+<date>$Date: 2002/07/02 07:43:38 $</date>
+<version>$Revision: 1.1 $</version>
+<copyright>last updated $Date: 2002/07/02 07:43:38 $</copyright>
+
+<keywordset>
+   <keyword>osdev</keyword>
+   <keyword>Mike Rieker</keyword>
+   <keyword>hardware</keyword>
+   <keyword>devices</keyword>
+   <keyword>SCSI</keyword>
+</keywordset>
+
+<abstract>
+This is a description of my expierience implementing ScsiPort on OZONE. ScsiPort is the interface between a Microsoft OS and the corresponding SCSI controller chip drivers. 
+</abstract>
+
+<chapter id="intro">
+<title>Introduction</title>
+<section>
+<body>
+
+<p>
+So, for example, if you have an Adaptec 7880-based controller, it comes with a file called <c>aic78xx.sys</c>. 
+The interface that <c>aic78xx.sys</c> is written to is called <b>ScsiPort</b>. 
+You can dig up a more-or-less complete description of ScsiPort on <uri>http://msdn.microsoft.com/</uri>.
+</p>
+
+<p>
+The reason for doing this is, well, have you attempted to get doc for an Adaptec controller? Maybe I'm just not good at it, but all I got was the run-around. So now I can use the surplus-priced motherboard's built-in 7880 chip with OZONE (you don't think I would actually spend money on an Adaptec board after that cr*p, do you?). Plus, now I can (theoretically) use any PCI SCSI controller card that has an MS driver. 
+</p>
+
+</body>
+</section>
+
+<section>
+<body>
+
+<p>
+So here's what I basically did to get this to work: 
+</p>
+
+<p>
+<ol>
+<li>Used a dumpbin /all aic78xx.sys command on my Win2K system to find out which routines the aic78xx.sys binary actually uses. Fortunately, there are only a couple dozen, and they are all ScsiPort... routines. One of the other scsi drivers uses some Hal... routines (I can't remember which other one I looked at though). </li>
+<li>Studied the ScsiPort... routines on <uri>http://msdn.microsoft.com/</uri></li>
+<li>Wrote my ScsiPort... routines. It is basically a subroutine library consisting of the various ScsiPort... routines. </li>
+<li>Wrote a disassembler that converts the <c>aic78xx.sys</c> file into an equivalent <c>aic78xx.s</c> file that can be assembled with the gas assembler. 
+Originally, it just disassembled it into a bunch of .long and .byte directives, ie, no instruction decoding. 
+But I later revised it to do some instruction decoding (by ripping off gdb's disassemble routine) for debugging purposes. 
+All the .long/.byte's are still there, the decoded instructions are in there as comments. </li>
+<li>Put it all together as a loadable image, consisting of these modules:
+<ul>
+  <li>A simple main program which locks the loadable image's pages in memory then calls <c>aic78xx</c>'s DriverEntry routine (its starting address) then returns. </li>
+  <li>The disassembled <c>aic78xx</c> file </li>
+  <li>My ScsiPort routines</li>
+</ul>
+</li>
+<li>So I load and run that image, it scans the PCI bus for aic-type chips and creates an OZONE scsi-type device table entry. I can now use my standard scsi tools to access disks or whatever on the scsi bus. </li>
+</ol>
+</p>
+
+</body>
+</section>
+
+<section>
+<body>
+<p>
+Here are the fun things I had to do to make it work:
+<ul>
+<li>My OS was written using the gcc compiler under Linux. 
+Needless to say, <c>the aic78xx.sys</c> image was most likely made with Microsoft compilers and linkers. 
+Well, gcc uses a 'caller pops call arguments' paradigm, whereas Microsoft uses a 'callee pops call arguments' paradigm. 
+So the result is that my ScsiPort routines have to have little bits of asm 'glue' in them to call the <c>aic78xx</c> Hw... routines, and 'glue' on the ScsiPort... entrypoints. One exception is the ScsiPortNotification routine, it uses the 'caller pops call arguments' paradigm, apparently because of the varargs calling format. </li>
+<li>I had to cut-and-paste the various struct definitions from various places. A good source for them is to download the Win2K DDK from the msdn site. The structs on the website (HW_INITIALIZATION_DATA for example) are out-of-date. You may be able to use them as is by simply including them. I figured I'd probably spend more time chasing undefined symbols that way so I extracted only what was needed. Mistakes I made: 
+<ul>
+    <li>SCSI_PHYSICAL_ADDRESS is a 64-bit quantity, not 32-bit </li>
+    <li>Gcc didn't like the convoluted definition of AccessRanges in the PORT_CONFIGURATION_INFORMATION struct. 
+I assumed that <c>ACCESS_RANGE (*AccessRanges)[]</c> meant there were two levels of indirection (as in <c>char *argv[]</c>) thus equivalent to <c>ACCESS_RANGE **AccessRanges</c>, meaning that it was a pointer to an array of pointers to the ACCESS_RANGE structs. 
+Well, it should simply be <c>ACCESS_RANGE *AccessRanges</c>, ie, a pointer to an array of ACCESS_RANGE structs.</li> 
+</ul>
+</li>
+</ul>
+</p>
+
+<p>
+All access to I/O registers is made through callbacks from the <c>aic78xx</c> driver to the ScsiPort routines. 
+Now it is possible for the controller's I/O registers to be mapped to memory space, but all the port access routines are provided with is a virtual address of the I/O register to be accessed. 
+Well, I/O space can't be mapped to a virtual address, so I tell the <c>aic78xx</c> driver that the I/O registers are mapped at virtual address <c>FFFFxxxx</c> (which is where I put my pagetables). 
+It would be impossible for the controller to have any real memory mapped registers there, so this is safe. 
+Then, when my port access routines see a register virtual address of <c>FFFFxxxx</c>, they know to use in/out instructions instead of a normal memory access to get to the controller's registers. 
+</p>
+
+<p>
+So when routine <c>ScsiPortGetDeviceBase</c> gets a call with the <c>InIoSpace</c> set, it simply returns <c>IoAddress+0xFFFF0000</c>. 
+Then when any of the ScsiPort... port access routines see an address that is <c>.ge. 0xFFFF0000</c>, they use in/out instructions. 
+If <c>InIoSpace</c> is clear, it allocates a system pagetable entry to map the controller's registers with, and sets the attributes to disable caching. 
+</p>
+
+<p>
+There are exciting learning opportunities awaiting you in the ScsiPortInitialize routine.
+<ul>
+    <li>From the doc, it looked like it gets called once for each different bus type supported by the controller. I only want to do PCI support, so I thought that the aic78xx driver would only call it once with AdapterInterfactType indicating PCIBus. This lead to two mistakes:
+<ol>
+<li>So I set my <c>ScsiPortInitialize</c> routine up to call <c>HwFindAdapter</c> thinking it would scan the PCI bus for a suitable controller and report back if it found one or not. 
+It also has a parameter to tell me if I should call it again to find another adapter. 
+I figured it would return the bus/dev/func of the adapter it found in the <c>ConfigInfo struct</c>. 
+Booby prize for that. <c>HwFindAdapter</c> will really only check to see if the adapter you give it in the <c>ConfigInfo struct</c> is one that it supports. 
+Ok, so I changed my <c>ScsiPortInitialize routine</c> to scan the PCI bus and call <c>HwFindAdapter</c> for every SCSI adapter I find on the PCI bus. </li>
+<li>So my <c>ScsiPortInitialize</c> routine got called 42 times (isn't that the correct temperature Farenheit for serving Dom Perringon '53)? 
+So I looked at the sample code for the initio 9100uw controller, and it calls <c>ScsiPortInitialize</c> once for each device-id/vendor-id combination that it supports, and it passes the vendor-id/device-id in the <c>HwInitializationData</c>. 
+I had an old struct definition from the website that didn't have those locations in it. 
+So I got the new struct from the NTDDK download and I use it to scan the PCI Bus with, then just call <c>HwFindAdapter</c> for adapters with matching vendor-id/device-id. </li>
+</ol>
+</li>
+    <li>The BusInformation passed to HwFindAdapter can be NULL as far as I can tell. Apparently neither the ini90u sample driver nor <c>aic78xx</c> require it.</li> 
+    <li>You have to fill the <c>AccessRanges array</c> for the <c>ConfigInfo struct</c> you pass to <c>HwFindAdapter</c> by scanning the base address array of the PCI config info for the device. 
+I originally assumed the <c>HwFindAdapter routine</c> filled the array in, after all, it should know how to read its controller's PCI config registers and know the sizes, etc. </li>
+    <li>Should <c>HwFindAdapter</c> successfully return, I create the OZONE device table entry for the scsi controller then I call <c>aic78xx's HwInitialize routine</c> to start the controller chip. </li>
+<li>Queuing of requests is another fun subject. Now that it's apparently done and apparently working, it seems more-or-less simple. But from initially reading the doc, I made these assumptions: 
+<ul>
+    <li>RequestComplete merely indicates that the I/O request is complete. It does not have any implications as to whether the <c>aic78xx</c> driver is ready to accept any new requests. </li>
+    <li>NextRequest indicates that the <c>aic78xx</c> driver is able to accept one request for any Lu. </li>
+    <li>NextLuRequest indicates that the <c>aic78xx</c> driver is able to accept a request for the indicated Lu as well as for any Lu. 
+So I thought it could accept up to two requests, as long as at least one was for the indicated Lu. </li>
+</ul>
+</li>
+</ul>
+Needless to say that is all wrong. It apparently means: 
+<ul>
+    <li>RequestComplete indicates an I/O request is complete. </li>
+    <li>NextRequest indicates that the aic78xx driver is able to accept one request for any Lu that does not currently have any I/O's in progress on it. So requests may have to wait for RequestComplete callbacks before they can be started. </li>
+    <li>NextLuRequest indicates that the <c>aic78xx</c> driver is able to accept one request for any Lu that does not currently have any I/O's in progress on it, or a request for the indicated Lu (even if it has I/O's in progress). </li>
+</ul>
+</p>
+
+<p>
+What I ended up with was the following: 
+<PRE>
+  Per hba 'active' flag
+    - gets set just before calling HwStartIo
+    - cleared when I get NextRequest or NextLuRequest callback
+    - when this flag is set, it blocks any request 
+      from being passed to HwStartIo
+
+  Per hba 'pending' request queue
+    - new requests stay here if they come in when either 
+      the hba active flag is already set
+      or the corresponding lu active flag is already set
+
+  Per lu 'active' flag
+    - gets set just before calling HwStartIo
+    - gets cleared when I get NextLuRequest callback
+      *or* when I get RequestComplete callback and there
+           aren't any more requests in progress on this lu
+    - when this flag is set, it blocks requests 
+      for this lu from being passed to HwStartIo
+
+  Per lu 'in progress' request queue
+    - requests get placed here just before calling HwStartIo 
+    - they get removed when I get the RequestComplete callback
+</PRE>
+</p>
+
+<p>
+When a new request comes in, it goes on the end of my hba's pending q.
+<BR/>
+Then if both my hba's active and corresponding lu's active flags are clear, 
+<BR/>
+move it from my hba pending q and put on my lu in-progress q
+<BR/>
+    set my hba active flag
+<BR/>
+    set my lu active flag
+<BR/>
+    pass request to HwStartIo
+<BR/>
+When I get a NextLuRequest callback,
+<BR/>
+    clear lu's active flag
+<BR/>
+    fall through to NextRequest processing
+<BR/>
+When I get a NextRequest callback,
+<BR/>
+    clear hba's active flag
+<BR/>
+    scan hba's pending request queue for a request on an inactive lu
+<BR/>
+    if found,
+<BR/>
+        move it from hba pending q to lu in-progress q
+<BR/>
+        set hba and lu active flags
+<BR/>
+        pass request to HwStartIo
+<BR/>
+
+<BR/>
+When I get a RequestComplete callback,
+<BR/>
+    remove request from lu's in-progress queue
+<BR/>
+    post the request as complete back to my OS
+<BR/>
+    if lu's in-progress queue now empty,
+<BR/>
+        clear lu's active flag
+<BR/>
+        if hba active flag is clear,
+<BR/>
+            scan hba's pending request queue for a request on an inactive lu
+<BR/>
+            if found, 
+<BR/>
+                move it from hba pending q to lu in-progress q
+<BR/>
+                set hba and lu active flags
+<BR/>
+                pass request to HwStartIo
+</p>
+
+<p>
+<ul>
+<li>Ok, so let's say <c>aic78xx</c> driver calls me with <c>RequestComplete</c> and I can now start another I/O because both the hba and the lu are idle. 
+Well, it will lose the request if I call <c>HwStartIo</c> directly from my <c>ScsiPortNotification</c> routine. 
+So what I do instead is set up a software interrupt to cause <c>HwStartIo</c> to be called when I'm completely out of any of the <c>aic78xx</c> routines. </li>
+</ul>
+</p>
+
+<p>
+The process took about two weeks from start to where I'm at now, and there are about 3000 lines of original code. If you want to look at my sources for this stuff, they are at <uri>http://www.o3one.org/sources/aic78xx/</uri>. 
+</p>
+
+</body>
+</section>
+
+<section>
+<body>
+<p>
+Here's what's left to 'finish up': 
+</p>
+
+<p>
+<ul>
+<li>Write and test the code for timeouts and aborts </li>
+<li>Make a PE image loader to load the aic78xx.sys file directly. But the disassembly method has the advantage that I can statically link it to my loader and kernel so I can boot from a SCSI disk. </li>
+<li>Change the software interrupt HwStartIo paradigm to simply just checking the queue after every top-level call to the aic78xx driver (there aren't many). This should be more efficient. </li>
+<li>Maybe test it with the MS driver for the Lsilogic 875 board I have in that computer. I currently have a native driver for that board and I use it to access my system disk. Max said the MS driver for that board is dogmeat though, so I'm not going to make that a permanent change. </li>
+</ul>
+</p>
+
+<p>
+Thanks to Max on alt.os.development for the original challenge and for answering my questions.
+</p>
+
+</body>
+</section>
+</chapter>
+
+</guide>

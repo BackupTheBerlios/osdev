@@ -1,0 +1,9 @@
+#!/bin/sh
+# Syncronyze (via rsync) local and remote web pages (OS XML)
+# $Id: os_sync,v 1.1 2002/07/02 07:43:38 zhware Exp $
+
+LOCAL=$HOME/public_html/osdev
+REMOTE=name@host.com:~/www/osxml/
+REMOTE_SSH=/usr/local/bin/rsync
+
+rsync -Cavz -e ssh --rsync-path="${REMOTE_SSH}" ${LOCAL}/* ${REMOTE}

@@ -1,0 +1,310 @@
+/* $Id: gentoo.css,v 1.1 2002/07/02 07:43:36 zhware Exp $ */
+
+BODY {
+	BACKGROUND: #c0c0c0; 
+	COLOR: black; 
+	FONT-FAMILY: Helvetica, Arial; 
+	FONT-SIZE: 14px;
+}
+
+a.altlink:link { color: #7a5ada; text-decoration: none; }
+a.altlink:visited { color: #7a5ada; text-decoration: none; }
+a.altlink:hover { color: #7a5ada; text-decoration: underline; }
+a.altlink:active { color: #7a5ada; text-decoration: underline; }
+
+a.menulink:link { color: #c0c0c0; text-decoration: none; }
+a.menulink:visited { color: #c0c0c0; text-decoration: none; }
+a.menulink:hover { color: #00ff00; text-decoration: underline; }
+a.menulink:active { color: #00ff00; text-decoration: underline; }
+
+.menu {
+	font-size: 12px;
+	font-weight: bold;
+	font-family: Helvetica, Arial;
+	color: #a0a0a0;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	background: black;
+}
+
+.infotab {
+	background: #e7e6ea;	
+	padding: 0em;
+	margin: 1em;
+}
+
+.infohead {
+	font-size: 12px;	
+	font-family: Helvetica, Arial;
+	margin-top: 0.25em;
+	margin-bottom: 0.25em;
+	margin-left: 1.5em;
+	margin-right: 1.5em;
+	padding: 0.25em;
+	color: #ffffff;
+	font-weight: bold;
+	background: #7a5ada;
+}
+
+.infosub {
+	margin-top: 0.25em;
+	margin-bottom: 0.15em;
+	margin-left: 0em;
+	margin-right: 0.5em;
+	padding: 0em;
+	font-weight: bold;
+}
+
+.infolist {
+	margin-top: 0.05em;
+	margin-bottom: 0.05em;
+	margin-left: 2.0em;
+	margin-right: 0.5em;
+	padding: 0em;
+	font-weight: normal;
+}
+
+.infogfx {
+	background: #e7e6ea;
+	padding: 0em;
+}
+
+.infotext {
+	font-family: Helvetica, Arial;
+	color: #000000;
+	background: #bbffbb;
+        margin: 1em 1% 1em 1%;
+        font-size: 12px;
+}
+
+.impotext {
+	font-family: Helvetica, Arial;
+	color: #000000;
+	background: #ffffbb;
+        padding: 0.5em;
+        margin: 1em 1% 1em 1%;
+        font-size: 12px;
+}
+
+.warntext {
+	font-family: Helvetica, Arial;
+	color: #000000;
+	background: #bbffff;
+        padding: 0.5em;
+        margin: 1em 1% 1em 1%;
+        font-size: 12px;
+}
+
+.note {
+	font-family: Helvetica, Arial;
+	color: #000000;
+	background: #ddddff;
+        padding: 0.5em;
+        margin: 1em 1% 1em 1%;
+        font-size: 10px;
+}
+
+UL	{
+	margin-left: 0.25em;
+	padding-left: 1.0em;
+}
+
+.dochead {
+        margin: 1.2em 14% 0.5em 3%;
+        font-size: 20px;
+        font-weight: bold;
+}
+
+.chaphead {
+        margin: 1.2em 14% 0.5em 3%;
+        font-size: 16px;
+        font-weight: bold;
+}
+
+.secthead {
+        margin: 1.2em 14% 0.5em 3%;
+        font-size: 14px;
+        font-weight: bold;
+}
+
+.copyright {
+        padding-left: 1.0em;
+        padding-right: 1.0em;
+        margin: 0em 0% 0.2em 0%;
+        font-size: 12px;
+	font-family: Helvetica, Arial;
+	text-align: center;
+	background: #000000;
+	color: #808080;
+}
+
+.copyright:link {
+	text-decoration: underline;
+	color: #808080;
+}
+
+.copyright:visited {
+	text-decoration: underline;
+	color: #808080;
+}
+
+.copyright:hover { 
+	text-decoration: underline;
+	color: #0000ff;
+	
+}
+
+.subhead {
+	font-family: Helvetica, Arial;
+	font-size: 12px;
+	font-weight: bold;
+	/*margin: 0.5em 0% 0.5em 0%;*/
+}
+
+.content {
+	/*padding: 3em;*/
+	padding-top: 0em;
+	padding-left: 1.0em;
+	padding-right: 1.0em;
+	font-family: Helvetica, Arial;
+	font-size: 12px;
+}
+
+.contentbox {
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-top: 2%;
+	margin-bottom: 2%;
+	padding: 0.8em;
+}
+
+.logobg {
+	background: #45347b;
+}
+
+.top {
+	background: black;
+	font-family: Helvetica, Arial;
+	font-size: 20px;
+	color: #c0c0c0;
+	padding: 0em;
+	margin: 0em;
+}
+
+.topnews {
+	background: #5f4e4e;
+	color: white;
+}
+
+.tophead {
+	color: #a7f3fe;
+	font-weight: bold;
+	margin: 0em;
+}
+/*
+.top UL {
+	margin: 0em;
+	padding-top: 0em;
+	padding-bottom: 1em;
+	padding-left: 1em;
+	padding-right: 0em;
+}
+*/
+.toptext {
+	color: #ffffff;
+	margin-bottom: 7px;
+}
+.toptext a:hover {
+        color: #00ff00;
+}
+
+.toptext a:link {
+	font-style: normal;
+        color: #00dd00;
+}
+
+.bartext {
+	color: #40ff00;
+	font-family: Helvetica, Arial;
+	font-size: 12px;
+	padding: 0em;
+}
+
+.ahem {
+	display: none;
+}
+
+.caption {
+        padding-left: 1.0em;
+        padding-right: 1.0em;
+        margin: 0em 5% 0em 1%;
+        font-size: 12px;
+        background:#7a5ada;
+        color: white;
+	font-family: Helvetica, Arial;
+}
+
+.caption a:link {
+        color: #00ff00;
+}
+
+.caption a:visited {
+        color: #00dd00;
+}
+
+PRE {
+        margin: 0.5em 5% 0.5em 3%;
+        font-family: Courier, Helvetica;
+        color: #000000;
+}
+
+.tochead {
+        padding-left: 1.0em;
+        padding-right: 1.0em;
+        margin: 0em 0% 0.2em 0%;
+        font-size: 12px;
+        background:#7a5ada;
+        color: white;
+        font-weight: bold;
+	font-family: Helvetica, Arial;
+}
+
+.tochead a:link {
+        color: #00ff00;
+}
+
+.tochead a:visited {
+        color: #00dd00;
+}
+
+.tocitem {
+        margin: 0em 0% 0em 2%;
+        font-size: 10px;
+        font-weight: bold;
+	font-family: Helvetica, Arial;
+}
+
+.abstract {
+        margin: 0em 0% 0em 0%;
+        font-size: 12px;
+        font-style: italic;
+	font-family: Helvetica, Arial;
+        color: #7a5ada;
+}
+
+.ntable {
+  border-style: solid; border-width: 1px;  
+}
+
+.ncontent {
+  border-style: solid; border-width: 1px;  
+}
+
+.bottomline  { 
+  font-family: Helvetica, Arial; font-size: 10px; font-style: italic;
+  border-top-style: solid; border-width: 1px;
+}
+
+.path        { font-style: italic; }

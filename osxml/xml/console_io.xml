@@ -1,0 +1,93 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd">
+<!-- $Id: console_io.xml,v 1.1 2002/07/02 07:43:38 zhware Exp $ -->
+
+<guide link="console_io">
+<title>Console I/O via memory moves</title>
+<author>
+<email link="sft3236@post.netlink.se">Jens Olsson</email>
+<title>author</title>
+</author>
+<date>$Date: 2002/07/02 07:43:38 $</date>
+<version>$Revision: 1.1 $</version>
+<copyright>last updated $Date: 2002/07/02 07:43:38 $</copyright>
+
+<keywordset>
+   <keyword>osdev</keyword>
+   <keyword>Jens Olsson</keyword>
+   <keyword>user interface</keyword>
+   <keyword>console</keyword>
+   <keyword>GUI</keyword>
+</keywordset>
+
+<abstract>
+If you are writing a text based OS you will need a way to output text in text mode. Even though you can do this via BIOS interrupts, memory moves will lead to a performance increase and will give you more control.
+</abstract>
+
+<chapter id="mmap">
+<title>Memory mapping</title>
+<section>
+<body>
+
+<p>
+The top left character of the screen is stored at physical address <c>0xB8000</c> (<c>0xB800:0x0</c> real mode address) by default and the rest of the characters are stored in order with increasing memory address. 
+E.g. Character 0, 0 is stored at <c>0xB8000</c>, character 1, 0 is stored at <c>0xB8002</c> and character 0, 1 is stored at <c>0xB80A0</c>. 
+As you probably notice each character takes up 2 bytes of memory, which is because each character contains a character byte and an attribute byte. The character byte contains the ASCII value and the attribute byte contains foreground colour, background colour and sometimes a blink option. The following real mode example shows how to print a black on green A at position 0, 0 of your screen. All examples in this document are in NASM syntax.
+</p>
+<p>
+<pre>
+MOV AX, 0xB800
+MOV GS, AX
+MOV [GS:0x0], WORD 'A '
+</pre>
+</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter id="cursor">
+<title>Move the cursor</title>
+<section>
+<body>
+
+<p>
+If you write your text directly to the memory you will notice that the blinking cursor does not move with the text written. 
+This you will have to do your own by using 2 I/O ports (<c>0x3D4</c> and <c>0x3D5</c>). 
+<c>0x3D4</c> is the "Register index" port. 
+We send the number of the register we want to change to this port, then we send the data to port <c>0x3D5</c>. 
+The register indexes we will need are <c>0xE</c> and <c>0xF</c>, which together forms a 16-bit register, containing the position of the cursor.
+</p>
+
+<p>
+Here follows an example of a move cursor function:
+<pre link="cursor.asm">
+MOVECURSOR:
+;BX = New cursor pos
+PUSH DX
+PUSH AX
+PUSH BX
+MOV DX, 0x3D4 ;Hardware Cursor RegIndex Port
+MOV AL, 0xF      ;Make Hardware Cursor Low reg available at 0x3D5
+OUT DX, AL
+INC DX ;Hardware Cursor RegData Port
+MOV AL, BL
+OUT DX, AL ;Write Actual Cursor Low reg
+DEC DX ;Hardware Cursor RegIndex Port
+MOV AL, 0xE ;Make Hardware Cursor High reg available at 0x3D5
+OUT DX, AL
+INC DX ;Hardware Cursor RegData Port
+MOV AL, BH
+OUT DX, AL ;Write Actual Cursor High reg
+POP BX
+POP AX
+POP DX
+RET
+</pre>
+</p>
+
+</body>
+</section>
+</chapter>
+
+</guide>
