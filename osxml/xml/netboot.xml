@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <!DOCTYPE guide SYSTEM "../dtd/guide.dtd">
-<!-- $Id: netboot.xml,v 1.3 2002/08/01 02:15:35 cfallin Exp $ -->
+<!-- $Id: netboot.xml,v 1.4 2003/02/08 00:07:57 cfallin Exp $ -->
 
 <guide link="netboot">
 <title>Network-booting Your Operating System</title>
@@ -11,9 +11,9 @@
 	<homepage>http://www.cfallin.org/</homepage>
 </author>
 
-<date>$Date: 2002/08/01 02:15:35 $</date>
-<version>$Revision: 1.3 $</version>
-<copyright>Created 2002/7/28; Last updated: $Date: 2002/08/01 02:15:35 $</copyright>
+<date>$Date: 2003/02/08 00:07:57 $</date>
+<version>$Revision: 1.4 $</version>
+<copyright>Created 2002/7/28; Last updated: $Date: 2003/02/08 00:07:57 $</copyright>
 
 <keywordset>
 	<keyword>osdev</keyword>
@@ -305,7 +305,7 @@ by GRUB to specify the TFTP path to menu.lst (GRUB's menu/configuration file).
 
 <p>Under Linux, <uri link="http://www.isc.org">ISC</uri> DHCP is standard. It
 uses a text file configuration format, which is fairly simple to write. I'll
-let you dive right in to my /etc/dhcpd.conf:</p>
+let you dive right in to my /etc/dhcpd.conf (for dhcpd v2):</p>
 
 <pre>
 # cfallin.org internal dhcp
@@ -335,6 +335,22 @@ modem and my internal network. To ignore a subnet (I wouldn't want to serve
 DHCP on ATTBI's cable modem network - that would conflict with their servers),
 just leave the declaration empty. The "range" keyword gives a range of IPs from
 which to allocate. The rest is self explanatory.</p>
+
+<p>Note that the above is for dhcpd version 2. I have not used version 3; however,
+through feedback I know that the following should work:</p>
+
+<pre>
+option space netboot;
+option netboot.grub-menu code 150 = text;
+
+&lt; ... rest of global settings ... &gt;
+
+subnet ... {
+	...
+	option netboot.grub-menu "(nd)/tftpboot/menu.lst";
+	...
+}
+</pre>
 
 <p>Under Win2K server, setup is slightly more tedious, due to the GUI, but not
 any harder. Note that I currently don't have a Win2K server set up, so this is
