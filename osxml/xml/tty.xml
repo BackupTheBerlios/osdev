@@ -1,0 +1,126 @@
+<?xml version='1.0'?>
+<!DOCTYPE guide SYSTEM "../dtd/guide.dtd"
+[ 
+   <!ENTITY glass.c SYSTEM "../src_esc/glass.c.esc">
+]>
+<!-- $Id: tty.xml,v 1.1 2003/02/05 04:46:24 zhware Exp $ -->
+
+<guide link="tty">
+<title>How to write a TeleType (tty) device - Part I</title>
+<author>
+<email link="nospam777@freemail.hu">Viktor Peter Kovacs (KVP)</email>
+</author>
+<date>05-Feb-2003</date>
+<version>$Revision: 1.1 $</version>
+<copyright>last updated $Date: 2003/02/05 04:46:24 $</copyright>
+
+<keywordset>
+<keyword>osdev</keyword>
+<keyword>Viktor Peter Kovacs (KVP)</keyword>
+<keyword>XML</keyword>
+<keyword>devices</keyword>
+<keyword>tty</keyword>
+<keyword>teletype</keyword>
+</keywordset>
+
+<abstract>
+This tutorial will describe how to implement a classical tty on a display
+device, that implements a byte array based text screen, like the vga display
+adapter of the pc.
+</abstract>
+
+<chapter id="intro">
+<title>Introduction</title>
+<section>
+<body>
+<p>
+ The classical console based user interface is part of most operating systems.
+This device was originally implemented in dedicated hardware, communicating
+with the operating system through a serial cable or other byte stream based
+data transfer method.<br/>
+ In case of modern personal computers, where each system has a keyboard and
+a display integrated, there is a need to replicate the classical terminal
+based interface, and optionally extend its capabilites, by adding multiple
+emulated terminals to the system.<br/>
+ The interface of an emulated terminal is still the classic byte stream,
+often implemented as a file. The basic interface contains only standard
+single character ascii codes, and implements the functionality of a common
+mechanical typewriter. These codes are enough to provide standard i/o
+functionality, but not to allow more complex screen operations.
+</p>
+<p>
+ This tutorial will describe how to implement a classical tty on a display
+device, that implements a byte array based text screen, like the vga display
+adapter of the pc. There are methods to use multiple display pages, and to
+have hardware scrolling, but it complicates the software and imposes hardware
+limitations. Because of this, I assume a single byte array based display and
+minimize the use of hardware features.
+</p>
+<p>
+ On the pc, this memory region starts at <c>0xb8000</c> linear (<c>0xb0000</c> on monochrome
+cards) and cosists of 2 bytes per charcter. The dimensions depend on the
+display mode, and could be: <c>80x25</c>, <c>80x50</c>, <c>80x43</c>, <c>132x50</c>, etc. For the mode
+<c>0x03</c>, we have <c>80x25</c>. This could be represented as an array of words. It looks
+like this: unsigned short int screen[80*25]; in c. The 1st byte of the 16 bit
+word contains the character, the other one is the color.
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="implement">
+<title>Implementation</title>
+<section>
+<body>
+<p>
+ Let&apos;s see an example code for a single, classic, glass tty. This means, that
+we will only implement a few control characters, and not the functionality of
+a full blown ansi terminal.
+</p>
+<p>
+<pre caption="glass tty" link="src/glass.c">
+&glass.c;
+</pre>
+</p>
+<p>
+ This code could be extended to have a <c>tty_setmode()</c> function, so there would
+be a mechanism to set up the video card and the tty. The function should just
+call <c>vga_setmode()</c> and <c>tty_setup()</c>, according to the selected mode&apos;s actual
+parameters.
+</p>
+<p>
+Finally, the vga color palette bit assignements:
+<pre>
+   0bIRGBirgb where:
+    b : text blue
+    g : text green
+    r : text red
+    i : text inensity
+    B : background blue
+    G : background green
+    R : background red
+    I : background intensity / blinking bit (selectable)
+   (where I is the msb, b is the lsb)
+</pre>
+</p>
+<p>
+ This results in 2 selectable colors out of 16. The dark white on black code
+is <c>0x07</c> (this is the bios/msdos default text color).
+</p>
+</body>
+</section>
+</chapter>
+
+<chapter id="summary">
+<title>Summary</title>
+<section>
+<body>
+<p>
+ For hardware info on how to program an ega/vga/svga video card, I suggest you
+to read Ralph Brown&apos;s Interrupt List and Port List. It&apos;s avaible on the
+internet, and contains all the technical details.
+</p>
+</body>
+</section>
+</chapter>
+</guide>
