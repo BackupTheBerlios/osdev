@@ -10,9 +10,9 @@
 	<homepage>http://www.cfallin.org/</homepage>
 </author>
 
-<date>$Date: 2002/07/30 01:13:53 $</date>
-<version>$Revision: 1.1 $</version>
-<copyright>Created 2002/7/28; Last updated: $Date: 2002/07/30 01:13:53 $</copyright>
+<date>$Date: 2002/07/30 19:59:58 $</date>
+<version>$Revision: 1.2 $</version>
+<copyright>Created 2002/7/28; Last updated: $Date: 2002/07/30 19:59:58 $</copyright>
 
 <keywordset>
 	<keyword>osdev</keyword>
@@ -118,7 +118,7 @@ $ make bin32/&lt;NIC name&gt;.fd0
 /dev/fd0. If your floppy drive isn't /dev/fd0, then:</p>
 
 <pre>
-$ cat bin/boot1a.bin bin32/3c90x.rom > floppy.img
+$ cat bin/boot1a.bin bin32/&lt;NIC name&gt;.rom > floppy.img
 </pre>
 
 <p>This will create floppy.img, a floppy image.</p>
@@ -148,11 +148,11 @@ Now unpack it:</p>
 
 <pre>
 $ tar zxvf grub-x.yz.tar.gz
-# cd grub-x.yz
+$ cd grub-x.yz
 </pre>
 
-<p>Like Etherboot, this requires a GNU i386 toolchain. Cygwin should work.
-It goes like this:</p>
+<p>Like Etherboot, this requires a GNU i386 toolchain. The compilation goes
+like this:</p>
 
 <pre>
 $ ./configure --enable-diskless --enable-&lt;NIC name&gt;
@@ -161,6 +161,10 @@ $ make
 
 <p>&lt;NIC name&gt; is the name of your client's NIC - see the output of
 "./configure --help" for a full list of options, including NIC names.</p>
+
+<p>There have been reports of GRUB not compiling on Cygwin; there is a problem
+with objcopy. For now, if all you have is Cygwin, ask a friend with a *nix box
+to compile it for you.</p>
 
 <p>Once GRUB is compiled, you will have a 'stage2/nbgrub' file. Keep this -
 you'll need it later.</p>
